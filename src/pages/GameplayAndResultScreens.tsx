@@ -13,9 +13,10 @@ import {
 } from 'lucide-react';
 import { GAME_IMAGES, MimoShowcase, ResilientImage } from '../components/GameAssets.tsx';
 import { PhaserPuzzleCanvas } from '../game/PhaserPuzzleCanvas.tsx';
+import { PuzzleTutorial } from '../components/PuzzleTutorial.tsx';
 import { BLOCK_META, type PuzzleBoardState } from '../game/puzzleLogic.ts';
 import { soundEngine } from '../game/soundEngine.ts';
-import { api, type HydratedUserState } from '../services/api.ts';
+import { api, isLocalGame, type HydratedUserState } from '../services/api.ts';
 import type { GameLevelConfig, PuzzleMove, ScreenId } from '../types/index.ts';
 
 interface GameplayProps {
@@ -23,6 +24,8 @@ interface GameplayProps {
   level: GameLevelConfig;
   sessionId: string;
   seed: number;
+  initialMoves?: PuzzleMove[];
+  initialTool?: 'tap' | 'hammer';
   onUserUpdate: (u: HydratedUserState) => void;
   onFinishSession: (result: {
     outcome: 'won' | 'lost';
@@ -39,12 +42,18 @@ export const PuzzleGameplayScreen: React.FC<GameplayProps> = ({
   level,
   sessionId,
   seed,
+  initialMoves = [],
+  initialTool = 'tap',
   onUserUpdate,
   onFinishSession,
   onExit,
 }) => {
   const [boardState, setBoardState] = useState<PuzzleBoardState | null>(null);
-  const [activeTool, setActiveTool] = useState<'tap' | 'hammer'>('tap');
+  const [activeTool, setActiveTool] = useState<'tap' | 'hammer'>(initialTool);
+  const [tutorialOpen, setTutorialOpen] = useState(isLocalGame && !user.preferences.puzzleTutorialSeen && Object.keys(user.progress.completedLevels).length === 0 && initialMoves.length === 0);
+  const [animating, setAnimating] = useState(false);
+  const [boosterBusy, setBoosterBusy] = useState(false);
+  const boosterBusyRef = useRef(false);
   const [paused, setPaused] = useState(false);
   const [muted, setMuted] = useState(!user.preferences.soundEnabled);
   const [externalMove, setExternalMove] = useState<{ id: number; move: PuzzleMove } | null>(null);
@@ -58,16 +67,37 @@ export const PuzzleGameplayScreen: React.FC<GameplayProps> = ({
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' && !tutorialOpen) {
         setPaused((p) => !p);
       }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
+  }, [tutorialOpen]);
+
+  useEffect(() => {
+    const pauseWhenHidden = () => { if (document.hidden) setPaused(true); };
+    document.addEventListener('visibilitychange', pauseWhenHidden);
+    return () => document.removeEventListener('visibilitychange', pauseWhenHidden);
   }, []);
+
+  const finishTutorial = async () => {
+    setTutorialOpen(false);
+    try {
+      const response = await api.updatePreferences({ puzzleTutorialSeen: true });
+      onUserUpdate({ ...user, preferences: response.preferences });
+    } catch (error) { setErrorMsg((error as Error).message); }
+  };
+
+  const saveCheckpoint = (moves: PuzzleMove[]) => {
+    setAnimating(true);
+    // The local API writes synchronously before this promise resolves.
+    void api.saveGameCheckpoint(sessionId, moves).catch(error => setErrorMsg((error as Error).message));
+  };
 
   const handleStateChange = async (nextState: PuzzleBoardState, movesHistory: PuzzleMove[]) => {
     setBoardState(nextState);
+    setAnimating(false);
 
     if (
       (nextState.status === 'won' || nextState.status === 'lost') &&
@@ -102,6 +132,15 @@ export const PuzzleGameplayScreen: React.FC<GameplayProps> = ({
   };
 
   const handleTriggerBooster = async (type: 'hammer' | 'shuffle' | 'extra_moves') => {
+    if (boosterBusyRef.current || animating || paused || tutorialOpen || submitting || boardState?.status !== 'playing') return;
+    if (type === 'hammer' && activeTool === 'hammer') {
+      if (isLocalGame) {
+        try { onUserUpdate((await api.cancelHammer(sessionId)).user); }
+        catch (error) { setErrorMsg((error as Error).message); return; }
+      }
+      setActiveTool('tap');
+      return;
+    }
     const itemId =
       type === 'hammer' ? 'boost_hammer' : type === 'shuffle' ? 'boost_shuffle' : 'boost_moves';
     const qty = user.progress.inventory[itemId] || 0;
@@ -110,28 +149,18 @@ export const PuzzleGameplayScreen: React.FC<GameplayProps> = ({
       return;
     }
     setErrorMsg(null);
-
-    if (type === 'hammer') {
-      if (activeTool === 'hammer') {
-        setActiveTool('tap');
-        return;
-      }
-      try {
-        const res = await api.useBooster(itemId);
-        onUserUpdate(res.user);
-        setActiveTool('hammer');
-      } catch (err) {
-        setErrorMsg((err as Error).message);
-      }
-      return;
-    }
-
+    boosterBusyRef.current = true;
+    setBoosterBusy(true);
     try {
-      const res = await api.useBooster(itemId);
+      const res = await api.useBooster(itemId, sessionId);
       onUserUpdate(res.user);
-      setExternalMove({ id: Date.now(), move: { type } });
+      if (type === 'hammer') setActiveTool('hammer');
+      else setExternalMove({ id: Date.now(), move: { type } });
     } catch (err) {
       setErrorMsg((err as Error).message);
+    } finally {
+      boosterBusyRef.current = false;
+      setBoosterBusy(false);
     }
   };
 
@@ -180,7 +209,11 @@ export const PuzzleGameplayScreen: React.FC<GameplayProps> = ({
         <button
           type="button"
           aria-label={muted ? 'Aktifkan suara' : 'Bisukan suara'}
-          onClick={() => setMuted((m) => !m)}
+          onClick={() => {
+            const enabled = muted;
+            setMuted(!muted);
+            void api.updatePreferences({ soundEnabled: enabled }).then(response => onUserUpdate({ ...user, preferences: response.preferences })).catch(error => setErrorMsg(error.message));
+          }}
           className="w-11 h-11 rounded-xl bg-[#064E3B] border border-[#F5C542]/50 flex items-center justify-center hover:bg-[#08634B] cursor-pointer"
         >
           {muted ? <VolumeX className="w-5 h-5 text-red-300" /> : <Volume2 className="w-5 h-5 text-[#10B981]" />}
@@ -221,12 +254,15 @@ export const PuzzleGameplayScreen: React.FC<GameplayProps> = ({
         <PhaserPuzzleCanvas
           level={level}
           seed={seed}
+          initialMoves={initialMoves}
+          interactionEnabled={!paused && !tutorialOpen && !submitting && !boosterBusy}
           activeTool={activeTool}
           reducedMotion={user.preferences.reducedMotion}
           hapticsEnabled={user.preferences.hapticsEnabled}
           externalMoveTrigger={externalMove}
           onStateChange={(s, h) => void handleStateChange(s, h)}
           onToolUsed={() => setActiveTool('tap')}
+          onMoveCommitted={saveCheckpoint}
         />
       </div>
 
@@ -235,6 +271,7 @@ export const PuzzleGameplayScreen: React.FC<GameplayProps> = ({
         <button
           type="button"
           onClick={() => void handleTriggerBooster('hammer')}
+          disabled={animating || boosterBusy || submitting || paused || tutorialOpen}
           className={`min-h-[52px] rounded-2xl border-2 px-3 py-2 flex items-center justify-center gap-2 text-xs font-bold transition cursor-pointer ${
             activeTool === 'hammer'
               ? 'border-[#F5C542] bg-[#F5C542] text-[#022C22]'
@@ -248,6 +285,7 @@ export const PuzzleGameplayScreen: React.FC<GameplayProps> = ({
         <button
           type="button"
           onClick={() => void handleTriggerBooster('shuffle')}
+          disabled={animating || boosterBusy || submitting || paused || tutorialOpen}
           className="min-h-[52px] rounded-2xl border-2 border-[#38BDF8]/45 bg-[#064E3B] px-3 py-2 flex items-center justify-center gap-2 text-xs font-bold text-[#FFF8DC] hover:bg-[#08634B] transition cursor-pointer"
         >
           <Shuffle className="w-4 h-4 text-[#38BDF8]" />
@@ -257,6 +295,7 @@ export const PuzzleGameplayScreen: React.FC<GameplayProps> = ({
         <button
           type="button"
           onClick={() => void handleTriggerBooster('extra_moves')}
+          disabled={animating || boosterBusy || submitting || paused || tutorialOpen}
           className="min-h-[52px] rounded-2xl border-2 border-[#10B981]/55 bg-[#064E3B] px-3 py-2 flex items-center justify-center gap-2 text-xs font-bold text-[#FFF8DC] hover:bg-[#08634B] transition cursor-pointer"
         >
           <PlusCircle className="w-4 h-4 text-[#10B981]" />
@@ -286,12 +325,13 @@ export const PuzzleGameplayScreen: React.FC<GameplayProps> = ({
                 onClick={onExit}
                 className="w-full min-h-[44px] rounded-xl border border-[#064E3B]/25 text-sm font-bold text-[#064E3B] cursor-pointer"
               >
-                Kembali ke Peta Level
+                Simpan & kembali ke beranda
               </button>
             </div>
           </div>
         </div>
       )}
+      {tutorialOpen && <div role="dialog" aria-modal="true" aria-label="Panduan puzzle pertama" className="fixed inset-0 z-50 bg-black/75 overflow-y-auto flex items-start sm:items-center justify-center p-4"><PuzzleTutorial modal onDone={() => void finishTutorial()} /></div>}
     </div>
   );
 };

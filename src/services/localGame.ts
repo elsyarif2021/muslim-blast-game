@@ -2,7 +2,8 @@ import { ACHIEVEMENTS, DAILY_MISSIONS, VIRTUAL_SHOP_ITEMS } from '../data/econom
 import { INITIAL_QUIZ_QUESTIONS } from '../data/quizQuestions.ts';
 import { DEFAULT_LEVELS } from '../data/worldsAndLevels.ts';
 import { replayPuzzleSession } from '../game/puzzleLogic.ts';
-import type { AgeMode, PuzzleMove, UserPreferences } from '../types/index.ts';
+import { createDailyActivity, describeDailyChallenge, localDateKey, type DailyActivity } from '../game/dailyChallenge.ts';
+import type { AgeMode, DailyChallengeProgress, PuzzleMove, PuzzleSessionSnapshot, UserPreferences } from '../types/index.ts';
 import type { HydratedUserState, PublicCatalogResponse } from './api.ts';
 
 export const LOCAL_GAME_KEY = 'muslim-blast:game:v1';
@@ -19,6 +20,7 @@ interface LocalSession {
   seed: number;
   levelId: number;
   boosters: Record<string, number>;
+  moves: PuzzleMove[];
   result?: GameResult;
 }
 interface SavedGame {
@@ -26,6 +28,8 @@ interface SavedGame {
   user: HydratedUserState;
   sessions: Record<string, LocalSession>;
   quizReceipts: Record<string, number>;
+  activeSessionId: string | null;
+  daily: DailyActivity;
 }
 
 const CATALOG: PublicCatalogResponse = {
@@ -54,7 +58,12 @@ export class LocalGameService {
       if (raw) {
         const saved = JSON.parse(raw) as SavedGame;
         if (saved.version === 1 && saved.user?.profile?.id && saved.user.progress?.inventory && saved.user.wallets && saved.user.preferences) {
-          this.game = { ...saved, sessions: saved.sessions || {}, quizReceipts: saved.quizReceipts || {} };
+          const sessions = Object.fromEntries(Object.entries(saved.sessions || {}).map(([id, session]) => [id, { ...session, moves: session.moves || [] }]));
+          this.game = {
+            ...saved, sessions, quizReceipts: saved.quizReceipts || {},
+            activeSessionId: saved.activeSessionId === undefined ? Object.entries(sessions).reverse().find(([, session]) => !session.result)?.[0] || null : saved.activeSessionId,
+            daily: saved.daily || createDailyActivity(this.now()),
+          };
         }
       }
     } catch {
@@ -64,6 +73,46 @@ export class LocalGameService {
 
   getSavedUser(): HydratedUserState | null {
     return this.game ? structuredClone(this.game.user) : null;
+  }
+
+  getActiveSession(): PuzzleSessionSnapshot | null {
+    const id = this.game?.activeSessionId;
+    const session = id ? this.game?.sessions[id] : null;
+    if (!id || !session || session.result) return null;
+    const level = DEFAULT_LEVELS.find(level => level.id === session.levelId);
+    if (!level) return null;
+    const usedHammers = session.moves.filter(move => move.type === 'hammer').length;
+    return structuredClone({ sessionId: id, seed: session.seed, level, moves: session.moves, activeTool: (session.boosters.hammer || 0) > usedHammers ? 'hammer' : 'tap' });
+  }
+
+  private currentActivity(): DailyActivity {
+    if (this.game!.daily.date !== localDateKey(this.now())) this.game!.daily = createDailyActivity(this.now());
+    return this.game!.daily;
+  }
+
+  getDailyChallenge(): DailyChallengeProgress | null {
+    if (!this.game) return null;
+    const previousDate = this.game.daily.date;
+    const challenge = describeDailyChallenge(this.currentActivity());
+    if (previousDate !== challenge.date) this.persist();
+    return structuredClone(challenge);
+  }
+
+  private verifyMoves(session: LocalSession, input: unknown): ReturnType<typeof replayPuzzleSession> {
+    if (!Array.isArray(input) || input.length > 1000) throw new Error('Langkah permainan tidak valid.');
+    const used: Record<string, number> = {};
+    for (const move of input as PuzzleMove[]) {
+      if (!move || !['tap', 'hammer', 'shuffle', 'extra_moves'].includes(move.type)) throw new Error('Langkah permainan tidak valid.');
+      if (move.type === 'tap' || move.type === 'hammer') {
+        if (!Number.isInteger(move.row) || !Number.isInteger(move.col) || move.row! < 0 || move.row! > 7 || move.col! < 0 || move.col! > 7) throw new Error('Posisi blok tidak valid.');
+      }
+      if (move.type !== 'tap') used[move.type] = (used[move.type] || 0) + 1;
+    }
+    for (const key of Object.keys(used)) if (used[key] > (session.boosters[key] || 0)) throw new Error('Stok booster tidak sesuai dengan langkah permainan.');
+    if (session.moves.length > input.length || session.moves.some((move, index) => move.type !== input[index]?.type || move.row !== input[index]?.row || move.col !== input[index]?.col)) throw new Error('Progres yang lebih baru sudah tersimpan. Muat ulang permainan.');
+    const replay = replayPuzzleSession(session.seed, DEFAULT_LEVELS.find(level => level.id === session.levelId)!, input);
+    if (!replay.verified) throw new Error('Langkah permainan tidak valid.');
+    return replay;
   }
 
   private persist() {
@@ -77,7 +126,7 @@ export class LocalGameService {
   private createPlayer(name: string, ageMode: AgeMode): SavedGame {
     const id = crypto.randomUUID();
     return {
-      version: 1, sessions: {}, quizReceipts: {},
+      version: 1, sessions: {}, quizReceipts: {}, activeSessionId: null, daily: createDailyActivity(this.now()),
       user: {
         profile: {
           id, name: name.trim().slice(0, 50) || 'Sahabat Mimo', email: '', role: 'player', ageMode,
@@ -141,12 +190,18 @@ export class LocalGameService {
     const progress = user.progress;
     switch (path) {
       case '/api/me': return { user };
+      case '/api/me/profile': {
+        if (typeof body.name !== 'string' || !body.name.trim() || body.name.trim().length > 30) throw new Error('Nama pemain harus berisi 1–30 karakter.');
+        user.profile.name = body.name.trim();
+        return { ok: true };
+      }
       case '/api/me/preferences': {
         const prefs = user.preferences;
         for (const key of ['soundEnabled', 'hapticsEnabled', 'reducedMotion'] as const) {
           if (typeof body[key] === 'boolean') prefs[key] = body[key];
         }
         if (typeof body.soundVolume === 'number') prefs.soundVolume = Math.min(1, Math.max(0, body.soundVolume));
+        if (typeof body.puzzleTutorialSeen === 'boolean') prefs.puzzleTutorialSeen = body.puzzleTutorialSeen;
         return { preferences: prefs satisfies UserPreferences };
       }
       case '/api/game/session/start': {
@@ -157,31 +212,34 @@ export class LocalGameService {
         const seed = crypto.getRandomValues(new Uint32Array(1))[0];
         // Retain only recent sessions; abandoned rounds cannot grow the save forever.
         game.sessions = Object.fromEntries(Object.entries(game.sessions).slice(-9));
-        game.sessions[sessionId] = { seed, levelId: level.id, boosters: {} };
-        return { sessionId, seed, level };
+        game.sessions[sessionId] = { seed, levelId: level.id, boosters: {}, moves: [] };
+        game.activeSessionId = sessionId;
+        return { sessionId, seed, level, moves: [], activeTool: 'tap' };
+      }
+      case '/api/game/session/checkpoint': {
+        const session = game.sessions[String(body.sessionId)];
+        if (!session || session.result) throw new Error('Sesi permainan tidak aktif.');
+        this.verifyMoves(session, body.moves);
+        session.moves = structuredClone(body.moves as PuzzleMove[]);
+        return { ok: true };
       }
       case '/api/game/session/complete': {
         const session = game.sessions[String(body.sessionId)];
         if (!session) throw new Error('Sesi permainan tidak ditemukan.');
         if (session.result) return { ...session.result };
-        if (!Array.isArray(body.moves) || body.moves.length > 1000 || !body.idempotencyKey) throw new Error('Langkah permainan tidak valid.');
+        if (!body.idempotencyKey) throw new Error('Langkah permainan tidak valid.');
+        const replay = this.verifyMoves(session, body.moves);
         const moves = body.moves as PuzzleMove[];
-        const used: Record<string, number> = {};
-        for (const move of moves) {
-          if (!move || !['tap', 'hammer', 'shuffle', 'extra_moves'].includes(move.type)) throw new Error('Langkah permainan tidak valid.');
-          if (move.type !== 'tap') used[move.type] = (used[move.type] || 0) + 1;
-        }
-        for (const key of Object.keys(used)) {
-          if (used[key] > (session.boosters[key] || 0)) throw new Error('Stok booster tidak sesuai dengan langkah permainan.');
-        }
         const level = DEFAULT_LEVELS.find(item => item.id === session.levelId)!;
-        const replay = replayPuzzleSession(session.seed, level, moves);
         if (!replay.verified || replay.finalState.status === 'playing') throw new Error('Permainan belum selesai atau langkah tidak valid.');
         const firstClear = !progress.completedLevels[level.id];
         const won = replay.finalState.status === 'won';
         const koinAwarded = won ? (firstClear ? level.rewardKoin : Math.round(level.rewardKoin * 0.4)) : 0;
         const permataAwarded = won && firstClear ? level.rewardPermata : 0;
         progress.totalBlocksCleared += replay.finalState.totalBlocksCleared;
+        const activity = this.currentActivity();
+        activity.blocksCleared += replay.finalState.totalBlocksCleared;
+        if (won) activity.puzzleWins += 1;
         if (won) {
           const old = progress.completedLevels[level.id];
           progress.completedLevels[level.id] = { stars: Math.max(old?.stars || 0, replay.stars), highScore: Math.max(old?.highScore || 0, replay.finalState.score) };
@@ -193,15 +251,29 @@ export class LocalGameService {
           user.wallets.bintangPrestasi += Math.max(0, replay.stars - (old?.stars || 0));
         }
         session.result = { ok: true, status: won ? 'won' : 'lost', verifiedScore: replay.finalState.score, stars: replay.stars, koinAwarded, permataAwarded };
+        session.moves = structuredClone(moves);
+        if (game.activeSessionId === body.sessionId) game.activeSessionId = null;
         return { ...session.result };
       }
       case '/api/game/use-booster': {
         const item = VIRTUAL_SHOP_ITEMS.find(item => item.id === body.itemId && item.category === 'booster');
-        const session = Object.values(game.sessions).at(-1);
+        const session = game.sessions[String(body.sessionId || game.activeSessionId)];
         if (!item?.boosterKey || !session || session.result) throw new Error('Mulai level terlebih dahulu.');
+        const used = session.moves.filter(move => move.type === item.boosterKey).length;
+        if ((session.boosters[item.boosterKey] || 0) > used) throw new Error('Gunakan booster yang sudah dipilih terlebih dahulu.');
         if (!(progress.inventory[item.id] > 0)) throw new Error('Stok booster habis.');
         progress.inventory[item.id] -= 1;
         session.boosters[item.boosterKey] = (session.boosters[item.boosterKey] || 0) + 1;
+        return { ok: true };
+      }
+      case '/api/game/cancel-hammer': {
+        const session = game.sessions[String(body.sessionId)];
+        if (!session || session.result) throw new Error('Sesi permainan tidak aktif.');
+        const used = session.moves.filter(move => move.type === 'hammer').length;
+        if ((session.boosters.hammer || 0) > used) {
+          session.boosters.hammer -= 1;
+          progress.inventory.boost_hammer += 1;
+        }
         return { ok: true };
       }
       case '/api/quiz/submit': {
@@ -214,6 +286,7 @@ export class LocalGameService {
         progress.quizCorrectTotal += correct;
         user.profile.xp += correct * 12 + 20;
         user.wallets.koinIlmu += reward;
+        this.currentActivity().quizCorrect += correct;
         game.quizReceipts = Object.fromEntries(Object.entries(game.quizReceipts).slice(-99));
         game.quizReceipts[key] = reward;
         return { ok: true, koinAwarded: reward };
@@ -238,6 +311,16 @@ export class LocalGameService {
         user.wallets.koinIlmu += reward;
         if (progress.checkinStreak % 7 === 0) user.wallets.permataHikmah += 10;
         return { ok: true, reward };
+      }
+      case '/api/daily-challenge/claim': {
+        const activity = this.currentActivity();
+        const challenge = describeDailyChallenge(activity);
+        if (activity.claimed) throw new Error('Bonus tantangan hari ini sudah diklaim.');
+        if (!challenge.ready) throw new Error('Selesaikan ketiga tantangan terlebih dahulu.');
+        activity.claimed = true;
+        user.wallets.koinIlmu += challenge.rewardKoin;
+        user.wallets.permataHikmah += challenge.rewardPermata;
+        return { ok: true };
       }
       case '/api/missions/claim': {
         const mission = DAILY_MISSIONS.find(item => item.id === body.missionId);

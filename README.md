@@ -22,7 +22,17 @@ npm run build
 npm run preview
 ```
 
-Pengujian mencakup katalog tanpa server, pemulihan progres setelah reload, penyimpanan yang tidak tersedia, validasi level terkunci, penyelesaian puzzle melalui replay, booster, hadiah kuis, huruf Hijaiyah, misi, prestasi, toko, dan pergantian tanggal hadiah harian.
+Pengujian mencakup katalog tanpa server, pemulihan progres setelah reload, penyimpanan yang tidak tersedia, validasi level terkunci, penyelesaian puzzle melalui replay, booster, hadiah kuis, huruf Hijaiyah, misi, prestasi, toko, dan pergantian tanggal hadiah harian. Pengembangan 0.2 juga menguji susunan papan setelah checkpoint, pemulihan langkah kemenangan, pembatalan palu, migrasi save lama, tantangan harian, dan profil pemain.
+
+## Pengembangan 0.2
+
+- **Lanjutkan puzzle:** langkah valid disimpan sebelum animasinya berjalan. Setelah reload, buka Lanjutkan Petualangan lalu Lanjutkan Puzzle. Seed dan riwayat langkah memulihkan susunan blok, skor, sisa langkah, dan palu yang sedang dipilih. Memilih level lain memulai ronde baru.
+- **Tantangan harian:** menangkan puzzle, ledakkan sejumlah blok, dan jawab benar soal kuis. Setelah tiga target terpenuhi, klaim 150 koin dan 3 permata satu kali per tanggal perangkat. Penghitungan memakai ronde/kuis yang selesai; hadiah login tetap terpisah.
+- **Latihan interaktif:** panduan tiga tahap memperkenalkan kelompok blok, target, dan booster. Panduan muncul pada permainan pertama dan dapat dibuka kembali dari Profil. Latihan tidak mengurangi langkah atau stok.
+- **Pengaturan pemain:** ubah nama panggilan, simpan volume, atur efek suara/getaran, serta kurangi animasi. Pengaturan bertahan setelah reload.
+- **Simpan lama:** key penyimpanan tetap sama dan saldo, level, koleksi, serta materi yang sudah dipelajari dipertahankan. Ronde dari versi lama belum memiliki riwayat langkah; pemulihan setiap langkah berlaku mulai versi 0.2.
+
+Pengembangan ini tetap memakai mode browser bawaan tanpa env dan tidak menambahkan layanan berbayar. Resume puzzle, tantangan harian, dan perubahan nama tersedia dalam mode lokal.
 
 ## Penyimpanan dan fitur
 

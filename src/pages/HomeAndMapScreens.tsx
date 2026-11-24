@@ -17,7 +17,8 @@ import {
 import { GAME_IMAGES, MimoShowcase, MuslimBlastLogo, ResilientImage } from '../components/GameAssets.tsx';
 import { WORLDS } from '../data/worldsAndLevels.ts';
 import type { HydratedUserState } from '../services/api.ts';
-import type { GameLevelConfig, ScreenId } from '../types/index.ts';
+import type { GameLevelConfig, ScreenId, PuzzleSessionSnapshot } from '../types/index.ts';
+import { replayPuzzleSession } from '../game/puzzleLogic.ts';
 
 interface HomeScreenProps {
   user: HydratedUserState;
@@ -26,14 +27,19 @@ interface HomeScreenProps {
   onSelectWorld: (worldId: number) => void;
   onPlayLevel: (levelId: number) => void;
   onNavigate: (screen: ScreenId) => void;
+  resumeSession?: PuzzleSessionSnapshot | null;
+  onResume?: () => void;
 }
 
 export const HomeDashboardScreen: React.FC<HomeScreenProps> = ({
   user,
   onPlayLevel,
   onNavigate,
+  resumeSession,
+  onResume,
 }) => {
   const nextLevel = user.progress.highestUnlockedLevel || 1;
+  const savedBoard = resumeSession ? replayPuzzleSession(resumeSession.seed, resumeSession.level, resumeSession.moves || []).finalState : null;
   const menuCards: Array<{
     title: string;
     subtitle: string;
@@ -162,14 +168,14 @@ export const HomeDashboardScreen: React.FC<HomeScreenProps> = ({
         <div className="relative z-10 w-full max-w-xs">
           <button
             type="button"
-            onClick={() => onPlayLevel(nextLevel)}
+            onClick={() => resumeSession && onResume ? onResume() : onPlayLevel(nextLevel)}
             className="w-full min-h-[54px] rounded-2xl bg-gradient-to-b from-[#FFE07D] via-[#F5C542] to-[#D99B16] px-6 py-3 font-display text-lg font-bold text-[#022C22] shadow-[0_5px_0_#92400E] hover:brightness-105 active:translate-y-0.5 transition cursor-pointer flex items-center justify-center gap-2"
           >
             <Play className="w-5 h-5 fill-[#022C22]" />
-            <span>MULAI BERMAIN</span>
+            <span>{resumeSession ? 'LANJUTKAN PUZZLE' : 'MULAI BERMAIN'}</span>
           </button>
           <p className="mt-2 text-xs font-medium text-[#FFF8DC]/90">
-            Bermain, Belajar, Raih Kebaikan · Tahap {nextLevel} siap dimainkan
+            {resumeSession && savedBoard ? `Level ${resumeSession.level.id} tersimpan · Skor ${savedBoard.score.toLocaleString('id-ID')} · ${savedBoard.movesLeft} langkah` : `Bermain, Belajar, Raih Kebaikan · Tahap ${nextLevel} siap dimainkan`}
           </p>
         </div>
       </div>

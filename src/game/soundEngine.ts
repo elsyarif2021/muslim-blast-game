@@ -4,7 +4,7 @@ class SoundEngine {
   public volume = 0.6;
 
   private getContext(): AudioContext | null {
-    if (!this.enabled || typeof window === 'undefined') return null;
+    if (!this.enabled || this.volume <= 0 || typeof window === 'undefined') return null;
     if (!this.ctx) {
       const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       if (!AudioCtx) return null;

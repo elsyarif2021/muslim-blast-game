@@ -15,12 +15,15 @@ import type { BlockColor, GameLevelConfig, PuzzleCell, PuzzleMove, SpecialType }
 interface PhaserPuzzleCanvasProps {
   level: GameLevelConfig;
   seed: number;
+  initialMoves?: PuzzleMove[];
+  interactionEnabled?: boolean;
   activeTool: 'tap' | 'hammer';
   reducedMotion: boolean;
   hapticsEnabled: boolean;
   externalMoveTrigger: { id: number; move: PuzzleMove } | null;
   onStateChange: (state: PuzzleBoardState, movesHistory: PuzzleMove[]) => void;
   onToolUsed: () => void;
+  onMoveCommitted?: (moves: PuzzleMove[]) => void;
 }
 
 class MuslimBlastScene extends Phaser.Scene {
@@ -30,6 +33,9 @@ class MuslimBlastScene extends Phaser.Scene {
   private rng!: () => number;
   private nextId!: () => string;
   private movesHistory: PuzzleMove[] = [];
+  private initialMoves: PuzzleMove[] = [];
+  private interactionEnabled = true;
+  private onMoveCommitted?: (moves: PuzzleMove[]) => void;
   private sprites: Map<string, Phaser.GameObjects.Container> = new Map();
   private activeTool: 'tap' | 'hammer' = 'tap';
   private reducedMotion = false;
@@ -49,6 +55,10 @@ class MuslimBlastScene extends Phaser.Scene {
   init(data: {
     level: GameLevelConfig;
     seed: number;
+    initialMoves?: PuzzleMove[];
+    activeTool?: 'tap' | 'hammer';
+    interactionEnabled?: boolean;
+    onMoveCommitted?: (moves: PuzzleMove[]) => void;
     reducedMotion: boolean;
     hapticsEnabled: boolean;
     onStateChange: (state: PuzzleBoardState, movesHistory: PuzzleMove[]) => void;
@@ -56,6 +66,10 @@ class MuslimBlastScene extends Phaser.Scene {
   }) {
     this.level = data.level;
     this.seed = data.seed;
+    this.initialMoves = data.initialMoves || [];
+    this.activeTool = data.activeTool || 'tap';
+    this.interactionEnabled = data.interactionEnabled ?? true;
+    this.onMoveCommitted = data.onMoveCommitted;
     this.reducedMotion = data.reducedMotion;
     this.hapticsEnabled = data.hapticsEnabled;
     this.onStateChange = data.onStateChange;
@@ -125,11 +139,17 @@ class MuslimBlastScene extends Phaser.Scene {
     this.rng = init.rng;
     this.nextId = init.nextId;
     this.movesHistory = [];
+    for (const move of this.initialMoves) {
+      const restored = applyPuzzleMove(this.boardState, move, this.level, this.rng, this.nextId);
+      if (!restored.valid) break;
+      this.boardState = restored.state;
+      this.movesHistory.push(move);
+    }
     this.syncSprites(false);
     this.onStateChange(this.boardState, this.movesHistory);
 
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-      if (this.isAnimating || this.boardState.status !== 'playing') return;
+      if (!this.interactionEnabled || this.isAnimating || this.boardState.status !== 'playing') return;
       const col = Math.floor((pointer.x - this.boardOffsetX) / this.cellSize);
       const row = Math.floor((pointer.y - this.boardOffsetY) / this.cellSize);
       if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE) return;
@@ -226,13 +246,17 @@ class MuslimBlastScene extends Phaser.Scene {
     this.activeTool = tool;
   }
 
+  public setInteractionEnabled(enabled: boolean) {
+    this.interactionEnabled = enabled;
+  }
+
   public updateAccessibility(reducedMotion: boolean, hapticsEnabled: boolean) {
     this.reducedMotion = reducedMotion;
     this.hapticsEnabled = hapticsEnabled;
   }
 
   public triggerExternalMove(move: PuzzleMove) {
-    if (this.isAnimating || this.boardState.status !== 'playing') return;
+    if (!this.interactionEnabled || this.isAnimating || this.boardState.status !== 'playing') return;
     this.executeMove(move);
   }
 
@@ -293,6 +317,8 @@ class MuslimBlastScene extends Phaser.Scene {
 
     this.movesHistory.push(move);
     this.boardState = res.state;
+    // Save the step before its animation, including the final winning step.
+    this.onMoveCommitted?.([...this.movesHistory]);
 
     // Visual & audio juice
     const bigBlast = res.removedCells.length >= 5 || res.createdSpecial !== null;
@@ -430,21 +456,26 @@ class MuslimBlastScene extends Phaser.Scene {
 export const PhaserPuzzleCanvas: React.FC<PhaserPuzzleCanvasProps> = ({
   level,
   seed,
+  initialMoves,
+  interactionEnabled = true,
   activeTool,
   reducedMotion,
   hapticsEnabled,
   externalMoveTrigger,
   onStateChange,
   onToolUsed,
+  onMoveCommitted,
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
   const sceneRef = useRef<MuslimBlastScene | null>(null);
   const onStateRef = useRef(onStateChange);
   const onToolUsedRef = useRef(onToolUsed);
+  const onMoveCommittedRef = useRef(onMoveCommitted);
 
   onStateRef.current = onStateChange;
   onToolUsedRef.current = onToolUsed;
+  onMoveCommittedRef.current = onMoveCommitted;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -471,10 +502,14 @@ export const PhaserPuzzleCanvas: React.FC<PhaserPuzzleCanvasProps> = ({
     game.scene.start('MuslimBlastScene', {
       level,
       seed,
+      initialMoves,
+      activeTool,
+      interactionEnabled,
       reducedMotion,
       hapticsEnabled,
       onStateChange: (s: PuzzleBoardState, h: PuzzleMove[]) => onStateRef.current(s, h),
       onToolUsed: () => onToolUsedRef.current(),
+      onMoveCommitted: (moves: PuzzleMove[]) => onMoveCommittedRef.current?.(moves),
     });
 
     return () => {
@@ -483,6 +518,10 @@ export const PhaserPuzzleCanvas: React.FC<PhaserPuzzleCanvasProps> = ({
       sceneRef.current = null;
     };
   }, [level.id, seed]);
+
+  useEffect(() => {
+    sceneRef.current?.setInteractionEnabled(interactionEnabled);
+  }, [interactionEnabled]);
 
   useEffect(() => {
     sceneRef.current?.setTool(activeTool);

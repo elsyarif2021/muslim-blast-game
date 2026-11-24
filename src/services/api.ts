@@ -16,6 +16,8 @@ import type {
   UserProfile,
   WalletBalances,
   WalletTransaction,
+  PuzzleSessionSnapshot,
+  DailyChallengeProgress,
 } from '../types/index.ts';
 import { localGame } from './localGame.ts';
 
@@ -56,6 +58,31 @@ class ApiClient {
 
   get savesOnDevice(): boolean {
     return localGame.storageAvailable;
+  }
+
+  getActiveSession(): PuzzleSessionSnapshot | null {
+    return isLocalGame ? localGame.getActiveSession() : null;
+  }
+
+  getDailyChallenge(): DailyChallengeProgress | null {
+    return isLocalGame ? localGame.getDailyChallenge() : null;
+  }
+
+  updateProfile(name: string) {
+    return this.request<{ ok: boolean; user: HydratedUserState }>('/api/me/profile', { method: 'PATCH', body: JSON.stringify({ name }) });
+  }
+
+  saveGameCheckpoint(sessionId: string, moves: PuzzleMove[]) {
+    if (!isLocalGame) return Promise.resolve({ ok: true });
+    return this.request<{ ok: boolean }>('/api/game/session/checkpoint', { method: 'POST', body: JSON.stringify({ sessionId, moves }) });
+  }
+
+  cancelHammer(sessionId: string) {
+    return this.request<{ ok: boolean; user: HydratedUserState }>('/api/game/cancel-hammer', { method: 'POST', body: JSON.stringify({ sessionId }) });
+  }
+
+  claimDailyChallenge() {
+    return this.request<{ ok: boolean; user: HydratedUserState }>('/api/daily-challenge/claim', { method: 'POST' });
   }
 
   setUserToken(token: string | null) {
@@ -164,7 +191,7 @@ class ApiClient {
   }
 
   startGameSession(levelId: number) {
-    return this.request<{ sessionId: string; seed: number; level: GameLevelConfig }>(
+    return this.request<PuzzleSessionSnapshot>(
       '/api/game/session/start',
       { method: 'POST', body: JSON.stringify({ levelId }) }
     );
@@ -185,10 +212,10 @@ class ApiClient {
     });
   }
 
-  useBooster(itemId: string) {
+  useBooster(itemId: string, sessionId?: string) {
     return this.request<{ ok: boolean; user: HydratedUserState }>('/api/game/use-booster', {
       method: 'POST',
-      body: JSON.stringify({ itemId }),
+      body: JSON.stringify({ itemId, sessionId }),
     });
   }
 

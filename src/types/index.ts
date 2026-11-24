@@ -27,6 +27,8 @@ export type ScreenId =
   | 'profile'
   | 'settings'
   | 'help'
+  | 'tutorial'
+  | 'daily_challenge'
   | 'privacy'
   | 'terms'
   | 'parental_controls'
@@ -225,6 +227,24 @@ export interface UserPreferences {
   soundVolume: number;
   hapticsEnabled: boolean;
   reducedMotion: boolean;
+  puzzleTutorialSeen?: boolean;
+}
+
+export interface PuzzleSessionSnapshot {
+  sessionId: string;
+  seed: number;
+  level: GameLevelConfig;
+  moves?: PuzzleMove[];
+  activeTool?: 'tap' | 'hammer';
+}
+
+export interface DailyChallengeProgress {
+  date: string;
+  tasks: Array<{ id: string; label: string; current: number; target: number }>;
+  claimed: boolean;
+  ready: boolean;
+  rewardKoin: number;
+  rewardPermata: number;
 }
 
 export interface ParentalControlsState {
