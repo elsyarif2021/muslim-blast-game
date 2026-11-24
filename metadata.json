@@ -1,6 +1,6 @@
 {
-  "name": "Muslim Blast — Bermain, Belajar, Raih Kebaikan",
+  "name": "Muslim Blast \u2014 Bermain, Belajar, Raih Kebaikan",
   "description": "Game puzzle edukasi Islami 3D lintas platform dengan petualangan Hijaiyah, kuis pengetahuan Islam, misi kebaikan, dan sistem hadiah aman bagi keluarga.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": []
 }

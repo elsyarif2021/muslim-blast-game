@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Sparkles } from 'lucide-react';
+import mimo from '../assets/images/mimo_mascot_1795546550075.jpg';
+import villageBg from '../assets/images/village_hero_bg_1795546551068.jpg';
+import adventureMap from '../assets/images/adventure_map_bg_1795546551702.jpg';
+import treasureChest from '../assets/images/treasure_chest_icon_1795546551341.jpg';
+import emblem from '../assets/images/app_icon_emblem_1795546551694.jpg';
 
 export const GAME_IMAGES = {
-  mimo: '/src/assets/images/mimo_mascot_1795546550075.jpg',
-  villageBg: '/src/assets/images/village_hero_bg_1795546551068.jpg',
-  adventureMap: '/src/assets/images/adventure_map_bg_1795546551702.jpg',
-  treasureChest: '/src/assets/images/treasure_chest_icon_1795546551341.jpg',
-  emblem: '/src/assets/images/app_icon_emblem_1795546551694.jpg',
+  mimo, villageBg, adventureMap, treasureChest, emblem,
 } as const;
 
 interface ResilientImageProps {

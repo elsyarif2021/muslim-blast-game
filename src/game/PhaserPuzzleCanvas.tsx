@@ -189,13 +189,13 @@ class MuslimBlastScene extends Phaser.Scene {
         gfx.fillStyle(primary, 1);
         gfx.fillCircle(half + 4, half - 3, size * 0.17);
       } else if (color === 'gold_star') {
-        const pts: Phaser.Types.Math.Vector2Like[] = [];
+        const pts: Phaser.Math.Vector2[] = [];
         const outer = size * 0.25;
         const inner = size * 0.11;
         for (let i = 0; i < 10; i++) {
           const rad = i % 2 === 0 ? outer : inner;
           const ang = -Math.PI / 2 + (i * Math.PI) / 5;
-          pts.push({ x: half + Math.cos(ang) * rad, y: half - 1 + Math.sin(ang) * rad });
+          pts.push(new Phaser.Math.Vector2(half + Math.cos(ang) * rad, half - 1 + Math.sin(ang) * rad));
         }
         gfx.fillPoints(pts, true);
       } else if (color === 'purple_lantern') {

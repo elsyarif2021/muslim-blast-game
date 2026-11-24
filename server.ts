@@ -147,7 +147,7 @@ function createInitialDb(): PersistedDatabase {
       },
     ],
     settings: {
-      realRewardsEnabled: process.env.ENABLE_REAL_WORLD_REWARDS === 'true',
+      realRewardsEnabled: false,
       maintenanceMode: false,
       adsTestMode: true,
       minRedemptionPoints: 10000,
@@ -190,6 +190,8 @@ function loadDb(): PersistedDatabase {
 }
 
 const db = loadDb();
+db.settings.realRewardsEnabled = false;
+db.settings.adsTestMode = false;
 
 function saveDb() {
   const tmpFile = `${DB_FILE}.tmp`;
@@ -485,6 +487,9 @@ function createDefaultUser(
 async function startServer() {
   const app = express();
   app.use(express.json({ limit: '1mb' }));
+  app.use('/api/admin', (_req,res) => { res.status(403).json({error:'Admin dinonaktifkan pada versi demo.'}); });
+  app.use('/api/wallet/redeem', (_req,res) => { res.status(403).json({error:'Penukaran belum tersedia.'}); });
+  app.use('/api/ads', (_req,res) => { res.status(403).json({error:'Iklan belum tersedia.'}); });
 
   // Public bootstrap info
   app.get('/api/health', (_req, res) => {
@@ -686,6 +691,7 @@ async function startServer() {
       return;
     }
 
+    if (level.id > user.progress.highestUnlockedLevel) { res.status(403).json({error:'Level belum terbuka.'}); return; }
     const sessionId = crypto.randomUUID();
     const seed = crypto.randomInt(100_000, 999_999_999);
     db.sessions[sessionId] = {

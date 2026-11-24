@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowRight, BookOpen, ShieldCheck, Sparkles, UserCheck, Users } from 'lucide-react';
 import { GAME_IMAGES, MimoShowcase, MuslimBlastLogo, ResilientImage } from '../components/GameAssets.tsx';
-import { api, type HydratedUserState } from '../services/api.ts';
+import { api, isLocalGame, type HydratedUserState } from '../services/api.ts';
 import type { AgeMode, ScreenId } from '../types/index.ts';
 
 interface AuthFlowProps {
@@ -109,8 +109,8 @@ export const OnboardingAndAuthScreens: React.FC<AuthFlowProps> = ({
       icon: BookOpen,
     },
     {
-      title: 'Aman untuk Anak & Terkontrol',
-      desc: 'Mode Anak menonaktifkan iklan komersial dan penukaran tunai secara penuh. Orang tua dapat mengatur batas waktu bermain dan PIN pengaman.',
+      title: 'Belajar Bersama Keluarga',
+      desc: 'Bermain tanpa iklan dan kumpulkan hadiah virtual. Progres petualangan tersimpan di browser perangkat ini.',
       icon: ShieldCheck,
     },
   ];
@@ -266,7 +266,7 @@ export const OnboardingAndAuthScreens: React.FC<AuthFlowProps> = ({
                     Mode Anak &amp; Keluarga (Direkomendasikan)
                   </h3>
                   <p className="mt-1 text-xs leading-relaxed text-[#064E3B]/80">
-                    Fokus pada puzzle, kuis Islami, Hijaiyah, dan lencana virtual. Tanpa iklan komersial, tanpa fitur dompet tunai, dan mendukung PIN Kontrol Orang Tua.
+                    Fokus pada puzzle, kuis Islami, Hijaiyah, dan lencana virtual. Bermain bersama keluarga tanpa iklan komersial.
                   </p>
                 </div>
               </div>
@@ -290,7 +290,7 @@ export const OnboardingAndAuthScreens: React.FC<AuthFlowProps> = ({
                     Mode Dewasa (18+ Tahun)
                   </h3>
                   <p className="mt-1 text-xs leading-relaxed text-[#064E3B]/80">
-                    Akses penuh seluruh permainan edukasi ditambah Pusat Dompet Dewasa (fitur penukaran nyata tetap nonaktif secara default sampai verifikasi hukum &amp; sponsor selesai).
+                    Jelajahi seluruh permainan edukasi, selesaikan misi, dan kumpulkan koin serta item virtual bersama Mimo.
                   </p>
                 </div>
               </div>
@@ -306,7 +306,7 @@ export const OnboardingAndAuthScreens: React.FC<AuthFlowProps> = ({
             >
               {loading ? 'Menyiapkan Petualangan...' : 'Mulai Bermain Langsung (+500 Koin Ilmu)'}
             </button>
-            <div className="grid grid-cols-2 gap-3">
+            {isLocalGame ? <p className="text-center text-xs text-[#064E3B]/80">Tanpa daftar akun. Progres tersimpan di browser perangkat ini.</p> : <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => onNavigate('register')}
@@ -321,7 +321,7 @@ export const OnboardingAndAuthScreens: React.FC<AuthFlowProps> = ({
               >
                 Masuk Akun
               </button>
-            </div>
+            </div>}
           </div>
         </div>
       </div>

@@ -17,6 +17,9 @@ import type {
   WalletBalances,
   WalletTransaction,
 } from '../types/index.ts';
+import { localGame } from './localGame.ts';
+
+export const isLocalGame = import.meta.env.VITE_API_MODE !== 'server';
 
 export interface HydratedUserState {
   profile: UserProfile;
@@ -41,6 +44,20 @@ class ApiClient {
   private userToken: string | null = null;
   private adminToken: string | null = null;
 
+  getSavedUser(): HydratedUserState | null {
+    return isLocalGame ? localGame.getSavedUser() : null;
+  }
+
+  resumeLocalGame(): HydratedUserState | null {
+    const user = this.getSavedUser();
+    if (user) this.userToken = `local:${user.profile.id}`;
+    return user;
+  }
+
+  get savesOnDevice(): boolean {
+    return localGame.storageAvailable;
+  }
+
   setUserToken(token: string | null) {
     this.userToken = token;
   }
@@ -63,6 +80,7 @@ class ApiClient {
     useAdminToken = false
   ): Promise<T> {
     const token = useAdminToken ? this.adminToken : this.userToken;
+    if (isLocalGame) return localGame.request(path, options, token) as T;
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(options.headers as Record<string, string> | undefined),
@@ -71,7 +89,11 @@ class ApiClient {
       headers.Authorization = `Bearer ${token}`;
     }
 
-    const res = await fetch(path, { ...options, headers });
+    const baseUrl = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+    const res = await fetch(`${baseUrl}${path}`, { ...options, headers });
+    if (!res.headers.get('content-type')?.includes('application/json')) {
+      throw new Error('Server permainan belum tersedia. Periksa pengaturan backend.');
+    }
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       throw new Error((data as { error?: string }).error || `Permintaan gagal (${res.status})`);
