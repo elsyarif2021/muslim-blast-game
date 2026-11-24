@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-display: 'Fredoka', system-ui, sans-serif;
+    --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+    --font-arabic: 'Amiri', serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #FFF8DC;
+    color: #022C22;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display);
+  }
+
+  .font-arabic {
+    font-family: var(--font-arabic);
+    direction: rtl;
+    unicode-bidi: isolate;
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes cloudDrift {
+  0% {
+    transform: translateX(-10px);
+  }
+  50% {
+    transform: translateX(14px);
+  }
+  100% {
+    transform: translateX(-10px);
+  }
+}
+
+@keyframes lanternSway {
+  0%, 100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
+.animate-float-slow {
+  animation: floatSlow 3.6s ease-in-out infinite;
+}
+
+.animate-cloud-drift {
+  animation: cloudDrift 9s ease-in-out infinite;
+}
+
+.animate-lantern-sway {
+  transform-origin: top center;
+  animation: lanternSway 4.2s ease-in-out infinite;
+}
+
+/* Reduced-motion accessibility */
+.reduced-motion *,
+.reduced-motion *::before,
+.reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float-slow,
+  .animate-cloud-drift,
+  .animate-lantern-sway {
+    animation: none !important;
+  }
+}
+
+/* Islamic geometric subtle tile background */
+.islamic-pattern-bg {
+  background-image: radial-gradient(circle at 1px 1px, rgba(245, 197, 66, 0.14) 1.5px, transparent 0);
+  background-size: 24px 24px;
+}
