@@ -395,6 +395,7 @@ export const LevelSelectionScreen: React.FC<{
               <span className="font-display text-lg font-bold text-[#064E3B] tabular-nums">
                 {unlocked ? lv.levelNumber : <Lock className="w-4 h-4" />}
               </span>
+              {Boolean(lv.obstacles?.length) && <span className="text-[9px] text-[#064E3B]/75">{Array.from(new Set(lv.obstacles!.map(item => item.kind === 'ice' ? 'Es' : item.kind === 'crate' ? 'Peti' : 'Kunci'))).join(' · ')}</span>}
               <div className="flex items-center gap-0.5">
                 {[1, 2, 3].map((s) => (
                   <Star

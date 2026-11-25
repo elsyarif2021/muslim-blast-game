@@ -1,0 +1,1811 @@
+[
+  {
+    "seed": 1,
+    "levelId": 1,
+    "moves": [
+      {
+        "type": "extra_moves"
+      },
+      {
+        "type": "shuffle"
+      },
+      {
+        "type": "hammer",
+        "row": 4,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 4
+      }
+    ],
+    "digest": "5c64a3e789eb49dfaaea72226b796f659e0ee9cbbe663a9fe4e6c10183e50e41"
+  },
+  {
+    "seed": 42,
+    "levelId": 1,
+    "moves": [
+      {
+        "type": "extra_moves"
+      },
+      {
+        "type": "shuffle"
+      },
+      {
+        "type": "hammer",
+        "row": 4,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 6
+      }
+    ],
+    "digest": "b275a013184fe11d446ee02edb3db95dff96a331313db9cf056e07d47ba10f20"
+  },
+  {
+    "seed": 20261125,
+    "levelId": 1,
+    "moves": [
+      {
+        "type": "extra_moves"
+      },
+      {
+        "type": "shuffle"
+      },
+      {
+        "type": "hammer",
+        "row": 4,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 0
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 0
+      }
+    ],
+    "digest": "72bebac95f9ba7f996ae9270f8f5e59cafe3630dcbac9c4d8781dfd6f35ccde6"
+  },
+  {
+    "seed": 1,
+    "levelId": 7,
+    "moves": [
+      {
+        "type": "extra_moves"
+      },
+      {
+        "type": "shuffle"
+      },
+      {
+        "type": "hammer",
+        "row": 4,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 5,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 3
+      }
+    ],
+    "digest": "8e3f332facdab167e0722d66307c10dcce02dc53f1443c20e4df80f04c6c3070"
+  },
+  {
+    "seed": 42,
+    "levelId": 7,
+    "moves": [
+      {
+        "type": "extra_moves"
+      },
+      {
+        "type": "shuffle"
+      },
+      {
+        "type": "hammer",
+        "row": 4,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 6
+      }
+    ],
+    "digest": "5938fe70246688e769250a75eb489b0bebfd970023e6acb6242c7f65a12560aa"
+  },
+  {
+    "seed": 20261125,
+    "levelId": 7,
+    "moves": [
+      {
+        "type": "extra_moves"
+      },
+      {
+        "type": "shuffle"
+      },
+      {
+        "type": "hammer",
+        "row": 4,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 0
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 0
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 7
+      },
+      {
+        "type": "tap",
+        "row": 5,
+        "col": 7
+      }
+    ],
+    "digest": "d224054bb0a44be1a7d928303507afb2000334b51967be7c13e4d4822fe9bd64"
+  },
+  {
+    "seed": 1,
+    "levelId": 16,
+    "moves": [
+      {
+        "type": "extra_moves"
+      },
+      {
+        "type": "shuffle"
+      },
+      {
+        "type": "hammer",
+        "row": 4,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 5,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 5,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 2
+      }
+    ],
+    "digest": "a2e7641ee8cda2d5663ef81b43d82310c37f1461af88a14b01990a4d8e06b066"
+  },
+  {
+    "seed": 42,
+    "levelId": 16,
+    "moves": [
+      {
+        "type": "extra_moves"
+      },
+      {
+        "type": "shuffle"
+      },
+      {
+        "type": "hammer",
+        "row": 4,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 3
+      }
+    ],
+    "digest": "7929036a0a635629aaea69424a84a60eb112e4625abbfdb0d22d188fb56acf0c"
+  },
+  {
+    "seed": 20261125,
+    "levelId": 16,
+    "moves": [
+      {
+        "type": "extra_moves"
+      },
+      {
+        "type": "shuffle"
+      },
+      {
+        "type": "hammer",
+        "row": 4,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 1
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 1
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 0
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 0
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 5,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 6,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 2
+      }
+    ],
+    "digest": "fec415796aefb1ad0fc1ff31659d98d620c6e77f5454ab7848ed7b64824c8329"
+  },
+  {
+    "seed": 1,
+    "levelId": 58,
+    "moves": [
+      {
+        "type": "extra_moves"
+      },
+      {
+        "type": "shuffle"
+      },
+      {
+        "type": "hammer",
+        "row": 4,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 5,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 5,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 1
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 5,
+        "col": 0
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 0
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 4
+      }
+    ],
+    "digest": "deec773b3baa24399267a1221e3d02c498a97b0e2c7e89b4f9847ad39db1e312"
+  },
+  {
+    "seed": 42,
+    "levelId": 58,
+    "moves": [
+      {
+        "type": "extra_moves"
+      },
+      {
+        "type": "shuffle"
+      },
+      {
+        "type": "hammer",
+        "row": 4,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 6,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 3
+      }
+    ],
+    "digest": "aa3229a5bce3935318675e9ab79e58618543cf1a1002e8d63360539cb94dcee1"
+  },
+  {
+    "seed": 20261125,
+    "levelId": 58,
+    "moves": [
+      {
+        "type": "extra_moves"
+      },
+      {
+        "type": "shuffle"
+      },
+      {
+        "type": "hammer",
+        "row": 4,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 1
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 1
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 0
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 0
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 5,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 6,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 6,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 6,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 5
+      }
+    ],
+    "digest": "3a032d582472429c328c54aadc3beff96b738fdae21f1095df1ee5a752c816e1"
+  },
+  {
+    "seed": 1,
+    "levelId": 100,
+    "moves": [
+      {
+        "type": "extra_moves"
+      },
+      {
+        "type": "shuffle"
+      },
+      {
+        "type": "hammer",
+        "row": 4,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 5,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 6,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 1
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 1
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 1
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 2
+      }
+    ],
+    "digest": "b0bc4091cb595cd00b019a7c7c306a1db002aa1e296515233361a152d4cd68e0"
+  },
+  {
+    "seed": 42,
+    "levelId": 100,
+    "moves": [
+      {
+        "type": "extra_moves"
+      },
+      {
+        "type": "shuffle"
+      },
+      {
+        "type": "hammer",
+        "row": 4,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 5,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 6,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 0
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 1
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 1
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 5
+      }
+    ],
+    "digest": "519a11c4a7a5fb409e024462483c675250544824007cd362c4ecc576fd8ad38a"
+  },
+  {
+    "seed": 20261125,
+    "levelId": 100,
+    "moves": [
+      {
+        "type": "extra_moves"
+      },
+      {
+        "type": "shuffle"
+      },
+      {
+        "type": "hammer",
+        "row": 4,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 0
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 0
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 5,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 7
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 7
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 7
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 0
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 1
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 0
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 0
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 5,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 6,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 1
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 1
+      }
+    ],
+    "digest": "d435c2ae15aa3fdf32c1f44a6142bdc7318ddf189e3934184d5ba0154094ed07"
+  },
+  {
+    "seed": 1,
+    "levelId": 160,
+    "moves": [
+      {
+        "type": "extra_moves"
+      },
+      {
+        "type": "shuffle"
+      },
+      {
+        "type": "hammer",
+        "row": 4,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 5,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 6,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 1
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 1
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 1
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 2
+      }
+    ],
+    "digest": "b0bc4091cb595cd00b019a7c7c306a1db002aa1e296515233361a152d4cd68e0"
+  },
+  {
+    "seed": 42,
+    "levelId": 160,
+    "moves": [
+      {
+        "type": "extra_moves"
+      },
+      {
+        "type": "shuffle"
+      },
+      {
+        "type": "hammer",
+        "row": 4,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 5,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 6,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 0
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 1
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 1
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 6
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 5
+      }
+    ],
+    "digest": "519a11c4a7a5fb409e024462483c675250544824007cd362c4ecc576fd8ad38a"
+  },
+  {
+    "seed": 20261125,
+    "levelId": 160,
+    "moves": [
+      {
+        "type": "extra_moves"
+      },
+      {
+        "type": "shuffle"
+      },
+      {
+        "type": "hammer",
+        "row": 4,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 0
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 0
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 5,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 7
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 7
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 7
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 0
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 1
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 2
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 0
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 0
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 0,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 3
+      },
+      {
+        "type": "tap",
+        "row": 3,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 4,
+        "col": 5
+      },
+      {
+        "type": "tap",
+        "row": 5,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 6,
+        "col": 4
+      },
+      {
+        "type": "tap",
+        "row": 1,
+        "col": 1
+      },
+      {
+        "type": "tap",
+        "row": 2,
+        "col": 1
+      }
+    ],
+    "digest": "d435c2ae15aa3fdf32c1f44a6142bdc7318ddf189e3934184d5ba0154094ed07"
+  }
+]

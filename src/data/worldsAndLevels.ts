@@ -1,4 +1,4 @@
-import type { BlockColor, GameLevelConfig, WorldConfig } from '../types/index.ts';
+import type { BlockColor, GameLevelConfig, WorldConfig, LevelObstacle } from '../types/index.ts';
 import { ALL_BLOCK_COLORS } from '../game/puzzleLogic.ts';
 
 export const WORLDS: WorldConfig[] = [
@@ -122,6 +122,10 @@ export function generateDefaultLevels(): GameLevelConfig[] {
       const collectColor: BlockColor | undefined =
         lv % 2 === 0 ? ALL_BLOCK_COLORS[(globalId - 1) % colorsCount] : undefined;
       const collectCount = collectColor ? 10 + Math.min(24, Math.floor(globalId / 3)) : undefined;
+      const obstacles: LevelObstacle[] = [];
+      if (globalId >= 3) obstacles.push({ row: 2, col: 2, kind: 'ice' }, { row: 5, col: 5, kind: 'ice' });
+      if (globalId >= 5 && lv % 2 === 1) obstacles.push({ row: 3, col: 3, kind: 'crate' }, { row: 4, col: 4, kind: 'crate' });
+      if (globalId >= 7 && lv % 3 === 1) obstacles.push({ row: 2, col: 5, kind: 'lock' }, { row: 5, col: 2, kind: 'lock' });
 
       levels.push({
         id: globalId,
@@ -135,10 +139,12 @@ export function generateDefaultLevels(): GameLevelConfig[] {
           targetScore,
           collectColor,
           collectCount,
+          ...(obstacles.length ? { clearObstacles: true } : {}),
         },
         rewardKoin: 50 + (lv === 20 ? 50 : 0),
         rewardPermata: lv % 5 === 0 ? 5 : 2,
         quizCategoryHint: QUIZ_CATEGORY_BY_WORLD[world.id] ?? 'Rukun Islam',
+        ...(obstacles.length ? { obstacles } : {}),
       });
     }
   }
@@ -146,3 +152,12 @@ export function generateDefaultLevels(): GameLevelConfig[] {
 }
 
 export const DEFAULT_LEVELS: GameLevelConfig[] = generateDefaultLevels();
+
+// Sessions started before obstacles were introduced keep their original rules.
+export function legacyLevel(id: number): GameLevelConfig | undefined {
+  const source = DEFAULT_LEVELS.find(level => level.id === id);
+  if (!source) return undefined;
+  const { obstacles: _obstacles, ...level } = source;
+  const { clearObstacles: _clearObstacles, ...objective } = source.objective;
+  return { ...level, objective };
+}

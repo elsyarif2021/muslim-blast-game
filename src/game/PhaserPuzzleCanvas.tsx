@@ -47,6 +47,7 @@ class MuslimBlastScene extends Phaser.Scene {
   private boardOffsetX = 16;
   private boardOffsetY = 16;
   private particles!: Phaser.GameObjects.Particles.ParticleEmitter;
+  private obstacleLayer?: Phaser.GameObjects.Container;
 
   constructor() {
     super({ key: 'MuslimBlastScene' });
@@ -449,6 +450,36 @@ class MuslimBlastScene extends Phaser.Scene {
         sprite.destroy();
         this.sprites.delete(id);
       }
+    }
+    this.syncObstacles();
+  }
+
+  private syncObstacles() {
+    this.obstacleLayer?.destroy(true);
+    this.obstacleLayer = this.add.container(0, 0).setDepth(20);
+    const size = this.cellSize - 8, half = size / 2;
+    for (const [key, obstacle] of Object.entries(this.boardState.obstacles)) {
+      const [row, col] = key.split(',').map(Number), position = this.getCellCenter(row, col);
+      const shape = this.add.graphics();
+      shape.setPosition(position.x, position.y);
+      if (obstacle.kind === 'ice') {
+        shape.fillStyle(0xb9efff, 0.45); shape.fillRoundedRect(-half, -half, size, size, 9);
+        shape.lineStyle(2, 0xe0ffff, 1); shape.strokeRoundedRect(-half, -half, size, size, 9);
+        shape.beginPath(); shape.moveTo(-half + 5, half - 6); shape.lineTo(-half + 11, -half + 6); shape.lineTo(half - 5, -half + 4); shape.strokePath();
+      } else if (obstacle.kind === 'crate') {
+        shape.fillStyle(0x92400e); shape.fillRoundedRect(-half, -half, size, size, 6);
+        shape.lineStyle(4, 0xf5c542); shape.strokeRoundedRect(-half + 2, -half + 2, size - 4, size - 4, 5);
+        shape.lineBetween(-half + 4, -half + 4, half - 4, half - 4); shape.lineBetween(-half + 4, half - 4, half - 4, -half + 4);
+      } else {
+        shape.fillStyle(0x022c22, 0.25); shape.fillRoundedRect(-half, -half, size, size, 9);
+        shape.lineStyle(3, 0xffe07d); shape.strokeCircle(0, -6, size * 0.18);
+        shape.fillStyle(0xf5c542); shape.fillRoundedRect(-size * 0.23, -5, size * 0.46, size * 0.4, 4);
+        shape.fillStyle(0x022c22); shape.fillCircle(0, 1, 2);
+      }
+      if (obstacle.kind !== 'ice') for (let i = 0; i < obstacle.hp; i++) {
+        shape.fillStyle(0xffffff); shape.fillCircle((i - (obstacle.hp - 1) / 2) * 9, half - 5, 2.5);
+      }
+      this.obstacleLayer.add(shape);
     }
   }
 }

@@ -1,4 +1,4 @@
-import type { BlockColor, GameLevelConfig, PuzzleCell, PuzzleMove, SpecialType } from '../types/index.ts';
+import type { BlockColor, GameLevelConfig, ObstacleKind, PuzzleCell, PuzzleMove, SpecialType } from '../types/index.ts';
 
 export const BOARD_SIZE = 8;
 
@@ -78,6 +78,8 @@ export interface PuzzleBoardState {
   totalBlocksCleared: number;
   status: 'playing' | 'won' | 'lost';
   reshuffles: number;
+  obstacles: Record<string, { kind: ObstacleKind; hp: number }>;
+  obstaclesCleared: number;
 }
 
 export function createInitialBoard(
@@ -98,10 +100,16 @@ export function createInitialBoard(
       col,
     }))
   );
+  const obstacles: PuzzleBoardState['obstacles'] = {};
+  for (const obstacle of level.obstacles || []) {
+    obstacles[`${obstacle.row},${obstacle.col}`] = { kind: obstacle.kind, hp: obstacle.kind === 'ice' ? 1 : 2 };
+    if (obstacle.kind === 'crate') grid[obstacle.row][obstacle.col] = null;
+  }
 
   // Ensure at least one valid playable match exists at start
   if (!hasValidMoves(grid)) {
-    grid[3][3]!.color = grid[3][4]!.color;
+    if (!Object.keys(obstacles).length) grid[3][3]!.color = grid[3][4]!.color;
+    else if (grid[0][0] && grid[0][1]) grid[0][0]!.color = grid[0][1]!.color;
   }
 
   return {
@@ -114,6 +122,8 @@ export function createInitialBoard(
       totalBlocksCleared: 0,
       status: 'playing',
       reshuffles: 0,
+      obstacles,
+      obstaclesCleared: 0,
     },
     rng,
     nextId,
@@ -178,12 +188,13 @@ export function hasValidMoves(grid: (PuzzleCell | null)[][]): boolean {
 
 export function reshuffleGrid(
   grid: (PuzzleCell | null)[][],
-  rng: () => number
+  rng: () => number,
+  obstacles: PuzzleBoardState['obstacles'] = {}
 ): (PuzzleCell | null)[][] {
   const cells: PuzzleCell[] = [];
   for (let r = 0; r < BOARD_SIZE; r++) {
     for (let c = 0; c < BOARD_SIZE; c++) {
-      if (grid[r][c]) cells.push({ ...grid[r][c]! });
+      if (grid[r][c] && !obstacles[`${r},${c}`]) cells.push({ ...grid[r][c]! });
     }
   }
 
@@ -200,14 +211,21 @@ export function reshuffleGrid(
   let idx = 0;
   for (let r = 0; r < BOARD_SIZE; r++) {
     for (let c = 0; c < BOARD_SIZE; c++) {
-      if (idx < cells.length) {
+      if (obstacles[`${r},${c}`]) {
+        nextGrid[r][c] = grid[r][c] ? { ...grid[r][c]! } : null;
+      } else if (idx < cells.length) {
         nextGrid[r][c] = { ...cells[idx++], row: r, col: c };
       }
     }
   }
 
-  if (!hasValidMoves(nextGrid) && nextGrid[0][0] && nextGrid[0][1]) {
-    nextGrid[0][1] = { ...nextGrid[0][1]!, color: nextGrid[0][0]!.color, special: 'none' };
+  if (!hasValidMoves(nextGrid)) {
+    for (let r = 0; r < BOARD_SIZE; r++) for (let c = 0; c < BOARD_SIZE - 1; c++) {
+      if (nextGrid[r][c] && nextGrid[r][c + 1]) {
+        nextGrid[r][c + 1] = { ...nextGrid[r][c + 1]!, color: nextGrid[r][c]!.color, special: 'none' };
+        return nextGrid;
+      }
+    }
   }
 
   return nextGrid;
@@ -216,7 +234,8 @@ export function reshuffleGrid(
 function collectSpecialBlast(
   grid: (PuzzleCell | null)[][],
   origin: PuzzleCell,
-  toRemove: Set<string>
+  toRemove: Set<string>,
+  obstacles: PuzzleBoardState['obstacles']
 ) {
   const queue: PuzzleCell[] = [origin];
   const triggered = new Set<string>();
@@ -231,9 +250,9 @@ function collectSpecialBlast(
     if (curr.special === 'rocket_h') {
       for (let c = 0; c < BOARD_SIZE; c++) {
         const target = grid[curr.row][c];
-        if (target) {
+        if (target || obstacles[`${curr.row},${c}`]?.kind === 'crate') {
           toRemove.add(`${curr.row},${c}`);
-          if (target.special !== 'none' && !triggered.has(`${curr.row},${c}`)) {
+          if (target && target.special !== 'none' && !triggered.has(`${curr.row},${c}`)) {
             queue.push(target);
           }
         }
@@ -241,9 +260,9 @@ function collectSpecialBlast(
     } else if (curr.special === 'rocket_v') {
       for (let r = 0; r < BOARD_SIZE; r++) {
         const target = grid[r][curr.col];
-        if (target) {
+        if (target || obstacles[`${r},${curr.col}`]?.kind === 'crate') {
           toRemove.add(`${r},${curr.col}`);
-          if (target.special !== 'none' && !triggered.has(`${r},${curr.col}`)) {
+          if (target && target.special !== 'none' && !triggered.has(`${r},${curr.col}`)) {
             queue.push(target);
           }
         }
@@ -255,9 +274,9 @@ function collectSpecialBlast(
           const nc = curr.col + dc;
           if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
             const target = grid[nr][nc];
-            if (target) {
+            if (target || obstacles[`${nr},${nc}`]?.kind === 'crate') {
               toRemove.add(`${nr},${nc}`);
-              if (target.special !== 'none' && !triggered.has(`${nr},${nc}`)) {
+              if (target && target.special !== 'none' && !triggered.has(`${nr},${nc}`)) {
                 queue.push(target);
               }
             }
@@ -307,6 +326,7 @@ export function applyPuzzleMove(
 
   const activeColors = ALL_BLOCK_COLORS.slice(0, level.colorsCount);
   const grid = prevState.grid.map((row) => row.map((cell) => (cell ? { ...cell } : null)));
+  const obstacles = Object.fromEntries(Object.entries(prevState.obstacles).map(([key, value]) => [key, { ...value }]));
 
   if (move.type === 'extra_moves') {
     return {
@@ -323,7 +343,7 @@ export function applyPuzzleMove(
   }
 
   if (move.type === 'shuffle') {
-    const shuffled = reshuffleGrid(grid, rng);
+    const shuffled = reshuffleGrid(grid, rng, obstacles);
     return {
       valid: true,
       removedCells: [],
@@ -341,7 +361,7 @@ export function applyPuzzleMove(
   const row = move.row ?? -1;
   const col = move.col ?? -1;
   const tapped = grid[row]?.[col];
-  if (!tapped) {
+  if (!tapped && !(move.type === 'hammer' && obstacles[`${row},${col}`]?.kind === 'crate')) {
     return {
       valid: false,
       removedCells: [],
@@ -358,15 +378,15 @@ export function applyPuzzleMove(
 
   if (move.type === 'hammer') {
     consumeMove = false;
-    if (tapped.special !== 'none') {
-      collectSpecialBlast(grid, tapped, toRemove);
+    if (tapped?.special && tapped.special !== 'none') {
+      collectSpecialBlast(grid, tapped, toRemove, obstacles);
     } else {
       toRemove.add(`${row},${col}`);
     }
-  } else {
+  } else if (tapped) {
     // Standard tap
     if (tapped.special !== 'none') {
-      collectSpecialBlast(grid, tapped, toRemove);
+      collectSpecialBlast(grid, tapped, toRemove, obstacles);
     } else {
       const group = findConnectedGroup(grid, row, col);
       if (group.length < 2) {
@@ -400,21 +420,35 @@ export function applyPuzzleMove(
 
   const removedCells: PuzzleCell[] = [];
   let targetColorCollected = 0;
+  let clearedObstacles = 0;
+  const damaged = new Set<string>();
+  const damageObstacle = (key: string) => {
+    if (!obstacles[key] || damaged.has(key)) return;
+    damaged.add(key);
+    obstacles[key].hp -= 1;
+    if (obstacles[key].hp <= 0) { delete obstacles[key]; clearedObstacles++; }
+  };
 
   for (const key of toRemove) {
     const [rStr, cStr] = key.split(',');
     const r = Number(rStr);
     const c = Number(cStr);
     const cell = grid[r][c];
+    if (obstacles[key]) { damageObstacle(key); continue; }
     if (cell) {
       removedCells.push(cell);
       if (level.objective.collectColor && cell.color === level.objective.collectColor) {
         targetColorCollected++;
       }
       grid[r][c] = null;
+      for (const [nr, nc] of [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]]) {
+        const neighbor = `${nr},${nc}`;
+        if (obstacles[neighbor]?.kind === 'crate') damageObstacle(neighbor);
+      }
     }
   }
 
+  if (createdSpecial && grid[createdSpecial.row][createdSpecial.col]) createdSpecial = null;
   if (createdSpecial) {
     grid[createdSpecial.row][createdSpecial.col] = {
       id: nextId(),
@@ -427,29 +461,28 @@ export function applyPuzzleMove(
 
   // Gravity collapse
   for (let c = 0; c < BOARD_SIZE; c++) {
-    let writeRow = BOARD_SIZE - 1;
-    for (let r = BOARD_SIZE - 1; r >= 0; r--) {
-      if (grid[r][c]) {
-        const cell = grid[r][c]!;
-        grid[r][c] = null;
-        grid[writeRow][c] = { ...cell, row: writeRow, col: c };
-        writeRow--;
+    let segmentBottom = BOARD_SIZE - 1;
+    for (let anchor = BOARD_SIZE - 1; anchor >= -1; anchor--) {
+      if (anchor !== -1 && !obstacles[`${anchor},${c}`]) continue;
+      let writeRow = segmentBottom;
+      for (let r = segmentBottom; r > anchor; r--) {
+        if (grid[r][c]) {
+          const cell = grid[r][c]!;
+          grid[r][c] = null;
+          grid[writeRow][c] = { ...cell, row: writeRow, col: c };
+          writeRow--;
+        }
       }
-    }
-    for (let r = writeRow; r >= 0; r--) {
-      grid[r][c] = {
-        id: nextId(),
-        color: activeColors[Math.floor(rng() * activeColors.length)],
-        special: 'none',
-        row: r,
-        col: c,
+      for (let r = writeRow; r > anchor; r--) grid[r][c] = {
+        id: nextId(), color: activeColors[Math.floor(rng() * activeColors.length)], special: 'none', row: r, col: c,
       };
+      segmentBottom = anchor - 1;
     }
   }
 
   const combo = removedCells.length >= 5 ? prevState.combo + 1 : 1;
   const multiplier = Math.min(4, 1 + (combo - 1) * 0.5);
-  const pointsGained = Math.round(removedCells.length * 25 * multiplier + (createdSpecial ? 120 : 0));
+  const pointsGained = Math.round(removedCells.length * 25 * multiplier + (createdSpecial ? 120 : 0) + clearedObstacles * 40);
 
   const nextScore = prevState.score + pointsGained;
   const nextCollected = prevState.collectedTarget + targetColorCollected;
@@ -458,7 +491,7 @@ export function applyPuzzleMove(
   let reshuffled = false;
   let finalGrid = grid;
   if (!hasValidMoves(finalGrid)) {
-    finalGrid = reshuffleGrid(finalGrid, rng);
+    finalGrid = reshuffleGrid(finalGrid, rng, obstacles);
     reshuffled = true;
   }
 
@@ -469,7 +502,8 @@ export function applyPuzzleMove(
     nextCollected >= level.objective.collectCount;
 
   let nextStatus: 'playing' | 'won' | 'lost' = 'playing';
-  if (scoreMet && collectMet) {
+  const obstaclesMet = !level.objective.clearObstacles || Object.keys(obstacles).length === 0;
+  if (scoreMet && collectMet && obstaclesMet) {
     nextStatus = 'won';
   } else if (nextMoves <= 0) {
     nextStatus = 'lost';
@@ -490,6 +524,8 @@ export function applyPuzzleMove(
       totalBlocksCleared: prevState.totalBlocksCleared + removedCells.length,
       status: nextStatus,
       reshuffles: prevState.reshuffles + (reshuffled ? 1 : 0),
+      obstacles,
+      obstaclesCleared: prevState.obstaclesCleared + clearedObstacles,
     },
   };
 }
@@ -513,7 +549,7 @@ export function replayPuzzleSession(
   let current = initialState;
 
   for (const move of moves) {
-    if (current.status !== 'playing') break;
+    if (current.status !== 'playing') return { verified: false, finalState: current, stars: 0 };
     const res = applyPuzzleMove(current, move, level, rng, nextId);
     if (!res.valid) {
       return { verified: false, finalState: current, stars: 0 };

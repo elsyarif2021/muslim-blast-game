@@ -85,6 +85,27 @@ class ApiClient {
     return this.request<{ ok: boolean; user: HydratedUserState }>('/api/daily-challenge/claim', { method: 'POST' });
   }
 
+  exportProgress() {
+    if (!isLocalGame) throw new Error('Cadangan ini tersedia untuk progres yang tersimpan di perangkat.');
+    return localGame.exportProgress();
+  }
+
+  importProgress(contents: string) {
+    if (!isLocalGame) throw new Error('Pemulihan ini tersedia untuk mode perangkat.');
+    const user = localGame.importProgress(contents);
+    this.userToken = `local:${user.profile.id}`;
+    return user;
+  }
+
+  hasRecoverySave() { return isLocalGame && localGame.hasRecoverySave(); }
+
+  undoProgressRestore() {
+    if (!isLocalGame) throw new Error('Pemulihan ini tersedia untuk mode perangkat.');
+    const user = localGame.undoProgressRestore();
+    this.userToken = `local:${user.profile.id}`;
+    return user;
+  }
+
   setUserToken(token: string | null) {
     this.userToken = token;
   }

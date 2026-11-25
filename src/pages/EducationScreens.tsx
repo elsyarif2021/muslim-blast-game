@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle,
   Award,
@@ -12,7 +12,8 @@ import {
 } from 'lucide-react';
 import { QUIZ_CATEGORIES } from '../data/quizQuestions.ts';
 import { soundEngine } from '../game/soundEngine.ts';
-import { playVerifiedHijaiyahAudio } from '../hijaiyah/audioArchitecture.ts';
+import { playHijaiyahAudio, stopHijaiyahAudio } from '../hijaiyah/audioArchitecture.ts';
+import { HIJAIYAH_AUDIO_CREDITS } from '../hijaiyah/audioSources.ts';
 import { HARAKAT_LESSONS, HIJAIYAH_LETTERS } from '../hijaiyah/hijaiyahData.ts';
 import { api, type HydratedUserState } from '../services/api.ts';
 import type { HijaiyahLetter, QuizDifficulty, QuizQuestion } from '../types/index.ts';
@@ -327,6 +328,14 @@ export const HijaiyahAdventureScreen: React.FC<{
   const [tab, setTab] = useState<'letters' | 'harakat' | 'trace' | 'game'>('letters');
   const [activeLetter, setActiveLetter] = useState<HijaiyahLetter>(HIJAIYAH_LETTERS[0]);
   const [audioMsg, setAudioMsg] = useState<string | null>(null);
+  const [audioPending, setAudioPending] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioRevision = useRef(0);
+  const recording = HIJAIYAH_AUDIO_CREDITS.entries.find(entry => entry.letterId === activeLetter.id)!;
+  useEffect(() => {
+    setAudioMsg(null); setAudioPending(false);
+    return () => { audioRevision.current++; stopHijaiyahAudio(); };
+  }, [activeLetter.id, tab]);
 
   // Tracing canvas state
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -361,8 +370,10 @@ export const HijaiyahAdventureScreen: React.FC<{
   };
 
   const handlePlayAudio = async () => {
-    const result = await playVerifiedHijaiyahAudio(activeLetter.audioPath, activeLetter.name);
-    setAudioMsg(result.message);
+    const revision = ++audioRevision.current;
+    setAudioPending(true);
+    const result = await playHijaiyahAudio(activeLetter.audioPath, activeLetter.name, user.preferences.soundVolume, audioRef.current);
+    if (revision === audioRevision.current) { setAudioMsg(result.message); setAudioPending(false); }
   };
 
   const startDraw = (e: React.PointerEvent<HTMLCanvasElement>) => {
@@ -475,11 +486,12 @@ export const HijaiyahAdventureScreen: React.FC<{
             <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
               <button
                 type="button"
+                disabled={audioPending}
                 onClick={() => void handlePlayAudio()}
-                className="min-h-[44px] rounded-xl bg-[#064E3B] px-4 py-2 text-xs font-bold text-[#F5C542] flex items-center gap-2 hover:bg-[#08634B] cursor-pointer"
+                className="min-h-[44px] rounded-xl bg-[#064E3B] px-4 py-2 text-xs font-bold text-[#F5C542] flex items-center gap-2 hover:bg-[#08634B] cursor-pointer disabled:opacity-50"
               >
                 <Volume2 className="w-4 h-4" />
-                Putar Pelafalan Terverifikasi
+                {audioPending ? 'Menyiapkan audio…' : 'Dengarkan huruf'}
               </button>
               <span className="text-[11px] text-[#064E3B]/65">
                 Huruf ke-{activeLetter.id} dari 28
@@ -487,10 +499,17 @@ export const HijaiyahAdventureScreen: React.FC<{
             </div>
 
             {audioMsg && (
-              <div className="mt-3 rounded-xl bg-amber-50 border border-amber-300 px-3 py-2 text-xs text-amber-900">
+              <div role="status" className="mt-3 rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-2 text-xs text-emerald-900">
                 {audioMsg}
               </div>
             )}
+            <audio key={activeLetter.id} ref={audioRef} src={activeLetter.audioPath} preload="none" onEnded={() => setAudioMsg(`Rekaman ${activeLetter.name} selesai. Ketuk Dengarkan huruf untuk mengulang.`)} />
+            <details className="mt-3 text-xs leading-relaxed text-[#064E3B]/75">
+              <summary className="cursor-pointer min-h-8 py-1 font-semibold">Sumber rekaman nama huruf</summary>
+              <p>Suara {recording.author}. Rekaman untuk mengenal nama huruf; latihan makhraj tetap bersama guru.</p>
+              <p className="mt-1"><a className="underline" href={recording.sourceUrl} target="_blank" rel="noreferrer">Berkas asli di Wikimedia Commons</a> · <a className="underline" href={recording.licenseUrl} target="_blank" rel="noreferrer">{recording.license}</a>. Dikonversi dari WAV ke MP3.</p>
+              <a className="mt-1 inline-block underline" href={HIJAIYAH_AUDIO_CREDITS.mappingSource} target="_blank" rel="noreferrer">Materi urutan huruf di Wikiversity</a>
+            </details>
           </div>
 
           {/* 28 Hijaiyah Medallion Grid (RTL order) */}

@@ -1,36 +1,16 @@
 import { ACHIEVEMENTS, DAILY_MISSIONS, VIRTUAL_SHOP_ITEMS } from '../data/economyAndMissions.ts';
 import { INITIAL_QUIZ_QUESTIONS } from '../data/quizQuestions.ts';
-import { DEFAULT_LEVELS } from '../data/worldsAndLevels.ts';
+import { DEFAULT_LEVELS, legacyLevel } from '../data/worldsAndLevels.ts';
 import { replayPuzzleSession } from '../game/puzzleLogic.ts';
 import { createDailyActivity, describeDailyChallenge, localDateKey, type DailyActivity } from '../game/dailyChallenge.ts';
 import type { AgeMode, DailyChallengeProgress, PuzzleMove, PuzzleSessionSnapshot, UserPreferences } from '../types/index.ts';
 import type { HydratedUserState, PublicCatalogResponse } from './api.ts';
+import type { SavedGame } from './gameSave.ts';
+import { createProgressBackup, parseProgressBackup } from './progressBackup.ts';
 
 export const LOCAL_GAME_KEY = 'muslim-blast:game:v1';
+export const RECOVERY_GAME_KEY = 'muslim-blast:before-restore:v1';
 type GameStorage = Pick<Storage, 'getItem' | 'setItem'>;
-type GameResult = {
-  ok: true;
-  status: 'won' | 'lost';
-  verifiedScore: number;
-  stars: number;
-  koinAwarded: number;
-  permataAwarded: number;
-};
-interface LocalSession {
-  seed: number;
-  levelId: number;
-  boosters: Record<string, number>;
-  moves: PuzzleMove[];
-  result?: GameResult;
-}
-interface SavedGame {
-  version: 1;
-  user: HydratedUserState;
-  sessions: Record<string, LocalSession>;
-  quizReceipts: Record<string, number>;
-  activeSessionId: string | null;
-  daily: DailyActivity;
-}
 
 const CATALOG: PublicCatalogResponse = {
   levels: DEFAULT_LEVELS,
@@ -58,7 +38,10 @@ export class LocalGameService {
       if (raw) {
         const saved = JSON.parse(raw) as SavedGame;
         if (saved.version === 1 && saved.user?.profile?.id && saved.user.progress?.inventory && saved.user.wallets && saved.user.preferences) {
-          const sessions = Object.fromEntries(Object.entries(saved.sessions || {}).map(([id, session]) => [id, { ...session, moves: session.moves || [] }]));
+          const sessions = Object.fromEntries(Object.entries(saved.sessions || {})
+            // Pre-checkpoint completed rounds have no replay history; their rewards already live in player progress.
+            .filter(([, session]) => !(session.result && !session.moves))
+            .map(([id, session]) => [id, { ...session, moves: session.moves || [], levelSnapshot: session.levelSnapshot || legacyLevel(session.levelId) }]));
           this.game = {
             ...saved, sessions, quizReceipts: saved.quizReceipts || {},
             activeSessionId: saved.activeSessionId === undefined ? Object.entries(sessions).reverse().find(([, session]) => !session.result)?.[0] || null : saved.activeSessionId,
@@ -75,11 +58,45 @@ export class LocalGameService {
     return this.game ? structuredClone(this.game.user) : null;
   }
 
+  exportProgress(): string {
+    if (!this.game) throw new Error('Mulai permainan sebelum membuat cadangan.');
+    return createProgressBackup(this.game, this.now());
+  }
+
+  importProgress(contents: string): HydratedUserState {
+    const imported = parseProgressBackup(contents).game;
+    if (!this.storage) throw new Error('Penyimpanan browser tidak tersedia. Cadangan belum dipulihkan.');
+    try {
+      if (this.game) this.storage.setItem(RECOVERY_GAME_KEY, createProgressBackup(this.game, this.now()));
+      this.storage.setItem(LOCAL_GAME_KEY, JSON.stringify(imported));
+    } catch {
+      throw new Error('Ruang penyimpanan browser tidak cukup. Progres saat ini tetap dipertahankan.');
+    }
+    this.game = imported;
+    this.storageAvailable = true;
+    return this.getSavedUser()!;
+  }
+
+  hasRecoverySave(): boolean {
+    try { return Boolean(this.storage?.getItem(RECOVERY_GAME_KEY)); } catch { return false; }
+  }
+
+  undoProgressRestore(): HydratedUserState {
+    const contents = this.storage?.getItem(RECOVERY_GAME_KEY);
+    if (!contents || !this.storage) throw new Error('Cadangan sebelum pemulihan tidak ditemukan.');
+    const previous = parseProgressBackup(contents).game;
+    try { this.storage.setItem(LOCAL_GAME_KEY, JSON.stringify(previous)); }
+    catch { throw new Error('Progres sebelumnya belum dapat dipulihkan. Coba lagi.'); }
+    this.game = previous;
+    try { this.storage.setItem(RECOVERY_GAME_KEY, ''); } catch { /* The restored main save is already durable. */ }
+    return this.getSavedUser()!;
+  }
+
   getActiveSession(): PuzzleSessionSnapshot | null {
     const id = this.game?.activeSessionId;
     const session = id ? this.game?.sessions[id] : null;
     if (!id || !session || session.result) return null;
-    const level = DEFAULT_LEVELS.find(level => level.id === session.levelId);
+    const level = session.levelSnapshot || legacyLevel(session.levelId);
     if (!level) return null;
     const usedHammers = session.moves.filter(move => move.type === 'hammer').length;
     return structuredClone({ sessionId: id, seed: session.seed, level, moves: session.moves, activeTool: (session.boosters.hammer || 0) > usedHammers ? 'hammer' : 'tap' });
@@ -98,7 +115,7 @@ export class LocalGameService {
     return structuredClone(challenge);
   }
 
-  private verifyMoves(session: LocalSession, input: unknown): ReturnType<typeof replayPuzzleSession> {
+  private verifyMoves(session: SavedGame['sessions'][string], input: unknown): ReturnType<typeof replayPuzzleSession> {
     if (!Array.isArray(input) || input.length > 1000) throw new Error('Langkah permainan tidak valid.');
     const used: Record<string, number> = {};
     for (const move of input as PuzzleMove[]) {
@@ -110,7 +127,7 @@ export class LocalGameService {
     }
     for (const key of Object.keys(used)) if (used[key] > (session.boosters[key] || 0)) throw new Error('Stok booster tidak sesuai dengan langkah permainan.');
     if (session.moves.length > input.length || session.moves.some((move, index) => move.type !== input[index]?.type || move.row !== input[index]?.row || move.col !== input[index]?.col)) throw new Error('Progres yang lebih baru sudah tersimpan. Muat ulang permainan.');
-    const replay = replayPuzzleSession(session.seed, DEFAULT_LEVELS.find(level => level.id === session.levelId)!, input);
+    const replay = replayPuzzleSession(session.seed, session.levelSnapshot || legacyLevel(session.levelId)!, input);
     if (!replay.verified) throw new Error('Langkah permainan tidak valid.');
     return replay;
   }
@@ -140,7 +157,7 @@ export class LocalGameService {
           inventory: { boost_hammer: 2, boost_shuffle: 2, boost_moves: 1, cap_emerald: 1, pack_explorer: 1, theme_garden: 1 },
           equippedCap: 'cap_emerald', equippedBackpack: 'pack_explorer', equippedTheme: 'theme_garden',
         },
-        preferences: { soundEnabled: true, soundVolume: 0.6, hapticsEnabled: true, reducedMotion: false },
+        preferences: { soundEnabled: true, soundVolume: 0.6, hapticsEnabled: true, reducedMotion: false, puzzleTutorialSeen: false },
         parental: { pinSet: false, dailyLimitMinutes: 45, adsAllowed: false, childModeLocked: ageMode === 'child' },
         notifications: [], transactions: [], redemptions: [],
       },
@@ -212,7 +229,7 @@ export class LocalGameService {
         const seed = crypto.getRandomValues(new Uint32Array(1))[0];
         // Retain only recent sessions; abandoned rounds cannot grow the save forever.
         game.sessions = Object.fromEntries(Object.entries(game.sessions).slice(-9));
-        game.sessions[sessionId] = { seed, levelId: level.id, boosters: {}, moves: [] };
+        game.sessions[sessionId] = { seed, levelId: level.id, boosters: {}, moves: [], levelSnapshot: structuredClone(level) };
         game.activeSessionId = sessionId;
         return { sessionId, seed, level, moves: [], activeTool: 'tap' };
       }
@@ -230,7 +247,7 @@ export class LocalGameService {
         if (!body.idempotencyKey) throw new Error('Langkah permainan tidak valid.');
         const replay = this.verifyMoves(session, body.moves);
         const moves = body.moves as PuzzleMove[];
-        const level = DEFAULT_LEVELS.find(item => item.id === session.levelId)!;
+        const level = session.levelSnapshot || legacyLevel(session.levelId)!;
         if (!replay.verified || replay.finalState.status === 'playing') throw new Error('Permainan belum selesai atau langkah tidak valid.');
         const firstClear = !progress.completedLevels[level.id];
         const won = replay.finalState.status === 'won';

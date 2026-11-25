@@ -22,7 +22,17 @@ npm run build
 npm run preview
 ```
 
-Pengujian mencakup katalog tanpa server, pemulihan progres setelah reload, penyimpanan yang tidak tersedia, validasi level terkunci, penyelesaian puzzle melalui replay, booster, hadiah kuis, huruf Hijaiyah, misi, prestasi, toko, dan pergantian tanggal hadiah harian. Pengembangan 0.2 juga menguji susunan papan setelah checkpoint, pemulihan langkah kemenangan, pembatalan palu, migrasi save lama, tantangan harian, dan profil pemain.
+Pengujian mencakup katalog tanpa server, pemulihan progres setelah reload, penyimpanan yang tidak tersedia, validasi level terkunci, penyelesaian puzzle melalui replay, booster, hadiah kuis, huruf Hijaiyah, misi, prestasi, toko, dan pergantian tanggal hadiah harian. Pengembangan 0.2 juga menguji susunan papan setelah checkpoint, pemulihan langkah kemenangan, pembatalan palu, migrasi save lama, tantangan harian, dan profil pemain. Versi 0.3 menguji rintangan, kesesuaian replay 18 ronde dari mesin 0.2, validasi berkas cadangan, pembatalan pemulihan, kegagalan penyimpanan, serta integritas 28 rekaman.
+
+## Pengembangan 0.3
+
+- **Rintangan bertahap:** es mulai level 3, peti mulai level 5 pada level bernomor ganjil di dunianya, dan kunci mulai level 7 pada tahap tertentu. Es perlu satu hit, peti/kunci dua hit. Kelompok sewarna atau ledakan spesial mengenai es/kunci; blok yang meledak di samping peti merusak peti. Palu bisa mengenai ketiganya. Setiap rintangan hanya menerima satu hit per aksi. Rintangan menahan gravitasi dan tetap di posisinya saat diacak. Pecahkan semua rintangan selain memenuhi target skor/warna.
+- **Rekaman 28 huruf:** tombol Dengarkan huruf di menu Hijaiyah memutar rekaman manusia untuk nama huruf. Volume mengikuti pengaturan Profil. Berkas disertakan dalam aplikasi dan cache PWA agar dapat digunakan setelah unduhan offline selesai. Atribusi serta sumber tersedia di kartu huruf dan [daftar atribusi audio](public/assets/audio/hijaiyah/ATTRIBUTION.md). Rekaman bukan sertifikasi tajwid; pendampingan guru tetap diperlukan untuk makhraj.
+- **Panduan suara:** tombol Dengarkan panduan tersedia di latihan tiga tahap dan menu Jeda puzzle. Suara Bahasa Indonesia menggunakan fitur ucapan perangkat, dijalankan setelah diketuk, dan dapat dihentikan. Dukungan suara/bahasa serta kemampuan offline bergantung pada browser dan perangkat.
+- **Cadangkan dan pulihkan:** buka Profil, Unduh cadangan, lalu pilih berkas JSON pada perangkat tujuan. Aplikasi memeriksa isi dan menampilkan pratinjau sebelum tombol Pulihkan cadangan ini mengganti progres. Profil, saldo virtual, level, koleksi, preferensi, aktivitas harian, dan ronde aktif ikut dipindahkan. Pemulihan terakhir bisa dibatalkan dari Profil. Berkas maksimal 1 MB, untuk mode lokal, tanpa kredensial akun/server.
+- **Aturan ronde tersimpan:** sesi baru menyimpan salinan aturan level. Ronde sebelum versi 0.3 tetap menggunakan aturan tanpa rintangan sampai selesai. Penyimpanan yang gagal saat impor tidak mengganti progres utama.
+
+Rekaman dapat dibangun ulang dengan Python 3 dan ffmpeg melalui `python3 scripts/import-hijaiyah-audio.py`. Skrip memeriksa lisensi dan hash sumber Wikimedia Commons sebelum konversi serta menghasilkan manifest, indeks sumber, dan atribusi. Unduhan diberi jeda agar menghormati pembatasan sumber; jika dibatasi, jalankan kembali setelah jeda untuk melanjutkan berkas yang tersisa.
 
 ## Pengembangan 0.2
 
@@ -36,11 +46,11 @@ Pengembangan ini tetap memakai mode browser bawaan tanpa env dan tidak menambahk
 
 ## Penyimpanan dan fitur
 
-- Progres berada di browser perangkat ini, pada key `muslim-blast:game:v1`. Menghapus data situs akan menghapus progres. Data tidak disinkronkan antarperangkat.
+- Progres berada di browser perangkat ini, pada key `muslim-blast:game:v1`. Menghapus data situs akan menghapus progres. Pemindahan antarperangkat memakai cadangan JSON melalui Profil; sinkronisasi otomatis belum tersedia.
 - Mode lokal tidak meminta email atau password. Identitas lokal bukan autentikasi server; koin, permata, dan prestasi lokal hanya untuk permainan.
 - Puzzle, kuis, Hijaiyah, misi, hadiah harian, prestasi, pembelian booster, serta pengaturan suara dan animasi dapat digunakan dalam mode lokal.
 - Hasil puzzle dihitung ulang dari seed dan riwayat langkah. Pengiriman ulang hasil sesi tidak menggandakan hadiah.
-- Materi kuis mempertahankan status pratinjau pada data sumber. Rekaman pelafalan Hijaiyah belum disertakan; tombol audio memberi informasi jika rekaman belum tersedia.
+- Materi kuis mempertahankan status pratinjau pada data sumber. Rekaman nama 28 huruf Hijaiyah disertakan dengan atribusi dan lisensi CC BY-SA 4.0; latihan harakat memakai petunjuk tertulis.
 - Admin, iklan, dan pencairan uang tetap nonaktif pada demo. Peringkat antarperangkat, autentikasi produksi, dan APK Android belum disediakan oleh perbaikan ini.
 
 ## Server pengembangan opsional

@@ -14,6 +14,7 @@ import {
 import { GAME_IMAGES, MimoShowcase, ResilientImage } from '../components/GameAssets.tsx';
 import { PhaserPuzzleCanvas } from '../game/PhaserPuzzleCanvas.tsx';
 import { PuzzleTutorial } from '../components/PuzzleTutorial.tsx';
+import { NarratorButton } from '../components/NarratorButton.tsx';
 import { BLOCK_META, type PuzzleBoardState } from '../game/puzzleLogic.ts';
 import { soundEngine } from '../game/soundEngine.ts';
 import { api, isLocalGame, type HydratedUserState } from '../services/api.ts';
@@ -249,6 +250,8 @@ export const PuzzleGameplayScreen: React.FC<GameplayProps> = ({
         </div>
       )}
 
+      {Boolean(level.obstacles?.length) && <div className="w-full max-w-md mx-auto mt-2 rounded-xl bg-[#064E3B] px-3 py-2 text-xs text-[#FFF8DC] flex flex-wrap justify-between gap-2"><span>Rintangan: {boardState?.obstaclesCleared || 0}/{level.obstacles!.length}</span><span>Es: 1 ledakan · Peti/kunci: 2 ledakan</span><span className="w-full text-[#FFF8DC]/75">Ledakkan kelompok di samping peti. Es dan kunci dapat dibuka lewat kelompok warnanya atau palu.</span></div>}
+
       {/* Phaser 3 8x8 Playfield */}
       <div className="my-auto py-2">
         <PhaserPuzzleCanvas
@@ -311,6 +314,7 @@ export const PuzzleGameplayScreen: React.FC<GameplayProps> = ({
             <p className="mt-1 text-xs text-[#064E3B]/75">
               Ketuk dua atau lebih blok yang berdekatan untuk meledakkan dan membuka booster!
             </p>
+            <NarratorButton volume={user.preferences.soundVolume} text={`Level ${level.id}. Capai skor ${level.objective.targetScore} dalam ${level.maxMoves} langkah. Ketuk kelompok minimal dua blok sewarna. ${level.obstacles?.length ? 'Pecahkan semua rintangan juga. Es membutuhkan satu ledakan. Peti dan kunci membutuhkan dua ledakan. Peti dipukul dengan ledakan di sampingnya atau dengan palu.' : 'Gunakan booster jika diperlukan.'}`} />
             <div className="mt-5 space-y-2.5">
               <button
                 type="button"
@@ -331,7 +335,7 @@ export const PuzzleGameplayScreen: React.FC<GameplayProps> = ({
           </div>
         </div>
       )}
-      {tutorialOpen && <div role="dialog" aria-modal="true" aria-label="Panduan puzzle pertama" className="fixed inset-0 z-50 bg-black/75 overflow-y-auto flex items-start sm:items-center justify-center p-4"><PuzzleTutorial modal onDone={() => void finishTutorial()} /></div>}
+      {tutorialOpen && <div role="dialog" aria-modal="true" aria-label="Panduan puzzle pertama" className="fixed inset-0 z-50 bg-black/75 overflow-y-auto flex items-start sm:items-center justify-center p-4"><PuzzleTutorial modal volume={user.preferences.soundVolume} onDone={() => void finishTutorial()} /></div>}
     </div>
   );
 };

@@ -1,56 +1,49 @@
 /**
- * Verified Hijaiyah Pronunciation Audio Architecture
- *
- * Strictly checks for verified studio-recorded audio files (.mp3) under /assets/audio/hijaiyah/.
- * Never fabricates or approximates Arabic Tajwid pronunciation using synthetic speech.
+ * Playback of attributed human alphabet recordings bundled with the app.
+ * These recordings teach letter names; they are not a certification of tajwid.
  */
 
 export interface AudioPlaybackResult {
-  status: 'played' | 'missing_verified_asset';
+  status: 'played' | 'unavailable';
   message: string;
   audioPath: string;
 }
 
 let activeAudio: HTMLAudioElement | null = null;
 
-export async function playVerifiedHijaiyahAudio(audioPath: string, letterName: string): Promise<AudioPlaybackResult> {
+export function stopHijaiyahAudio() {
+  activeAudio?.pause();
+  activeAudio = null;
+}
+
+export async function playHijaiyahAudio(audioPath: string, letterName: string, volume = 1, element?: HTMLAudioElement | null): Promise<AudioPlaybackResult> {
   if (typeof window === 'undefined') {
     return {
-      status: 'missing_verified_asset',
+      status: 'unavailable',
       message: 'Pemutaran audio hanya tersedia di peramban.',
       audioPath,
     };
   }
 
   try {
-    const check = await fetch(audioPath, { method: 'HEAD' });
-    const contentType = check.headers.get('content-type') || '';
-    const isAudio = check.ok && (contentType.includes('audio') || contentType.includes('octet-stream'));
-    if (!isAudio) {
-      return {
-        status: 'missing_verified_asset',
-        message: `Rekaman pelafalan terverifikasi untuk huruf ${letterName} belum tersedia di ${audioPath}. Unggah berkas audio qari resmi sebelum publikasi.`,
-        audioPath,
-      };
-    }
-
-    if (activeAudio) {
-      activeAudio.pause();
-      activeAudio = null;
-    }
-
-    const audio = new Audio(audioPath);
+    if (!/^\/assets\/audio\/hijaiyah\/\d{2}-[a-z0-9-]+\.mp3$/.test(audioPath)) throw new Error('Unknown audio asset');
+    stopHijaiyahAudio();
+    window.speechSynthesis?.cancel();
+    const audio = element || new Audio(audioPath);
+    audio.src = audioPath;
+    audio.volume = Math.max(0, Math.min(1, volume));
+    audio.currentTime = 0;
     activeAudio = audio;
     await audio.play();
     return {
       status: 'played',
-      message: `Memutar pelafalan terverifikasi huruf ${letterName}.`,
+      message: volume > 0 ? `Memutar rekaman nama huruf ${letterName}.` : 'Volume sedang nol. Naikkan volume di Profil untuk mendengarkan.',
       audioPath,
     };
   } catch {
     return {
-      status: 'missing_verified_asset',
-      message: `Berkas audio terverifikasi untuk huruf ${letterName} belum dipasang (${audioPath}). Pelajari makhraj tertulis di bawah ini.`,
+      status: 'unavailable',
+      message: `Rekaman ${letterName} belum dapat diputar. Ketuk kembali tombol dengarkan atau periksa volume perangkat.`,
       audioPath,
     };
   }

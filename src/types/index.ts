@@ -46,6 +46,8 @@ export type BlockColor =
   | 'pink_flower';
 
 export type SpecialType = 'none' | 'rocket_h' | 'rocket_v' | 'bomb' | 'rainbow';
+export type ObstacleKind = 'ice' | 'crate' | 'lock';
+export interface LevelObstacle { row: number; col: number; kind: ObstacleKind }
 
 export interface PuzzleCell {
   id: string;
@@ -65,6 +67,7 @@ export interface LevelObjective {
   targetScore: number;
   collectColor?: BlockColor;
   collectCount?: number;
+  clearObstacles?: boolean;
 }
 
 export interface GameLevelConfig {
@@ -80,6 +83,7 @@ export interface GameLevelConfig {
   rewardPermata: number;
   quizCategoryHint: string;
   isConfiguredByAdmin?: boolean;
+  obstacles?: LevelObstacle[];
 }
 
 export interface WorldConfig {
