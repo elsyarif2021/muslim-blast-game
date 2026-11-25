@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useEffect, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { BookOpen, Gift, Home, Map, UserRound } from 'lucide-react';
 import { api, isLocalGame, type HydratedUserState, type PublicCatalogResponse } from './services/api.ts';
 import { SplashScreen, OnboardingAndAuthScreens } from './pages/OnboardingAndAuthScreens.tsx';
@@ -9,6 +9,7 @@ import { OfflineIndicator } from './components/PWAInstallButton.tsx';
 import { PuzzleTutorial } from './components/PuzzleTutorial.tsx';
 import { DailyChallengeCard, DailyChallengeScreen, ProfileSettingsScreen } from './pages/PlayerDevelopmentScreens.tsx';
 import { soundEngine } from './game/soundEngine.ts';
+import { canUseYandexAds, createYandexAdvertising } from './services/yandexAdvertising.ts';
 import type { ScreenId, AgeMode, PuzzleSessionSnapshot, UserPreferences } from './types/index.ts';
 
 // Load the game engine only when the player enters a puzzle or its result screen.
@@ -47,6 +48,7 @@ export default function App() {
   const [session, setSession] = useState<PuzzleSessionSnapshot | null>(null);
   const [result, setResult] = useState<Result | null>(null);
   const [, refreshDate] = useState(0);
+  const advertising = useRef<ReturnType<typeof createYandexAdvertising> | null>(null);
 
   const loadCatalog = () => api.fetchCatalog().then(setCatalog).catch(e => setError(e.message));
   useEffect(() => { void loadCatalog(); }, []);
@@ -60,6 +62,10 @@ export default function App() {
     soundEngine.volume = user?.preferences.soundVolume ?? 0.6;
     document.documentElement.classList.toggle('reduced-motion', user?.preferences.reducedMotion ?? false);
   }, [user?.preferences.soundEnabled, user?.preferences.soundVolume, user?.preferences.reducedMotion]);
+  useEffect(() => {
+    advertising.current ??= createYandexAdvertising({ document, hostname: window.location.hostname, production: import.meta.env.PROD, reload: () => window.location.reload() });
+    advertising.current.sync(canUseYandexAds(user, isLocalGame));
+  }, [user?.profile.id, user?.profile.role, user?.profile.ageMode, user?.profile.ageConfirmed, user?.parental.adsAllowed, user?.parental.childModeLocked]);
 
   const navigate = (target: ScreenId) => {
     setError(''); setNotice('');
@@ -102,12 +108,12 @@ export default function App() {
   }
 
   const busyMessage = busy ? <p role="status" className="fixed top-3 left-1/2 -translate-x-1/2 z-50 rounded-xl bg-white px-5 py-3 text-[#064E3B] shadow-lg">Menyiapkan permainan…</p> : null;
-  if (screen === 'puzzle_play' && session) return <Suspense fallback={<Loading />}><PuzzleGameplayScreen key={session.sessionId} user={user} level={session.level} seed={session.seed} sessionId={session.sessionId} initialMoves={session.moves} initialTool={session.activeTool} onUserUpdate={setUser} onExit={() => navigate('home')} onFinishSession={r => { setResult(r); setScreen(r.outcome === 'won' ? 'victory' : 'defeat'); }} /></Suspense>;
-  if ((screen === 'victory' || screen === 'defeat') && session && result) return <Suspense fallback={<Loading />}>
+  if (screen === 'puzzle_play' && session) return <div data-ap-blacklist=""><Suspense fallback={<Loading />}><PuzzleGameplayScreen key={session.sessionId} user={user} level={session.level} seed={session.seed} sessionId={session.sessionId} initialMoves={session.moves} initialTool={session.activeTool} onUserUpdate={setUser} onExit={() => navigate('home')} onFinishSession={r => { setResult(r); setScreen(r.outcome === 'won' ? 'victory' : 'defeat'); }} /></Suspense></div>;
+  if ((screen === 'victory' || screen === 'defeat') && session && result) return <div data-ap-blacklist=""><Suspense fallback={<Loading />}>
     {busyMessage}
     {error && <p role="alert" className="p-3 bg-red-100 text-red-900">{error}</p>}
     {screen === 'victory' ? <VictoryScreen level={session.level} {...result} onNextLevel={() => void play(Math.min(session.level.id + 1, catalog.levels.length))} onReplay={() => void play(session.level.id)} onNavigate={navigate} /> : <DefeatScreen level={session.level} score={result.score} onReplay={() => void play(session.level.id)} onNavigate={navigate} />}
-  </Suspense>;
+  </Suspense></div>;
 
   const metrics = {
     levels_won: Object.keys(user.progress.completedLevels).length,
@@ -154,11 +160,11 @@ export default function App() {
     case 'wallet': content = <><h1 className="font-display text-3xl">Hadiah Virtual</h1><Card><p className="text-2xl font-display">{user.wallets.koinIlmu} Koin Ilmu</p><p>{user.wallets.permataHikmah} permata · {user.wallets.bintangPrestasi} bintang</p><p className="text-sm">Gunakan koin untuk booster dan permata untuk koleksi Mimo.</p></Card><div className="grid grid-cols-2 gap-3">{([['checkin', 'Hadiah harian'], ['achievements', 'Prestasi'], ['shop', 'Toko virtual'], ['missions', 'Misi kebaikan']] as [ScreenId, string][]).map(([target, label]) => <Button key={target} onClick={() => navigate(target)}>{label}</Button>)}</div></>; break;
     case 'leaderboard': content = <><h1 className="font-display text-3xl">Prestasi Pemain</h1><Card><h2 className="text-xl">{user.profile.name}</h2><p>Level pemain {user.profile.level} · {metrics.levels_won} puzzle selesai</p><p>{user.wallets.bintangPrestasi} bintang · {user.profile.xp} XP</p><p className="text-sm">{isLocalGame ? 'Prestasi di perangkat ini. Peringkat antarperangkat belum tersedia.' : 'Statistik pemainmu saat ini.'}</p></Card></>; break;
     case 'profile':
-    case 'settings': content = <ProfileSettingsScreen user={user} busy={busy} local={isLocalGame} onSaveName={name => void act(() => api.updateProfile(name), 'Nama pemain berhasil disimpan.')} onRestored={player => { setSession(null); setResult(null); setUser(player); setError(''); }} onPreferences={updatePrefs} onTutorial={() => navigate('tutorial')} onExit={() => { api.setUserToken(null); setUser(null); setScreen('splash'); }} />; break;
+    case 'settings': content = <ProfileSettingsScreen user={user} busy={busy} local={isLocalGame} onSaveName={name => void act(() => api.updateProfile(name), 'Nama pemain berhasil disimpan.')} onRestored={player => { setSession(null); setResult(null); setUser(player); setError(''); }} onPreferences={updatePrefs} onAdvertising={allowed => void act(() => api.updateParental({ adsAllowed: allowed }), 'Pengaturan iklan disimpan.')} onTutorial={() => navigate('tutorial')} onExit={() => { api.setUserToken(null); setUser(null); setScreen('splash'); }} />; break;
     default: content = <><h1 className="font-display text-3xl">Cara Bermain</h1><Card><p>Ketuk minimal dua blok dengan warna yang sama dan saling menempel. Raih target skor sebelum langkah habis.</p><p>Gunakan booster palu, acak papan, atau lima langkah ekstra saat diperlukan. Menang akan membuka level berikutnya.</p><p>Jelajahi menu Belajar untuk kuis dan Beranda untuk Hijaiyah. Selesaikan misi untuk menambah koleksi hadiah virtual.</p></Card></>;
   }
   const activeNav = screen === 'hijaiyah' ? 'quiz' : ['checkin', 'missions', 'achievements', 'shop', 'wallet', 'mascot'].includes(screen) ? 'reward_center' : screen === 'level_select' ? 'adventure_map' : screen === 'settings' ? 'profile' : screen;
-  return <main className="max-w-2xl mx-auto min-h-screen p-3 sm:p-5 pb-28 sm:pb-28 space-y-4">
+  return <main data-ap-blacklist={['quiz', 'hijaiyah', 'tutorial', 'profile', 'settings'].includes(screen) ? '' : undefined} className="max-w-2xl mx-auto min-h-screen p-3 sm:p-5 pb-28 sm:pb-28 space-y-4">
     {busyMessage}
     {isLocalGame && <p className="text-center text-xs text-[#064E3B]/75">{api.savesOnDevice ? 'Petualangan di perangkat ini · Hadiah virtual' : 'Penyimpanan browser tidak tersedia. Progres bertahan selama halaman ini terbuka.'}</p>}
     {screen !== 'home' && <button type="button" onClick={() => navigate('home')} className="min-h-11 text-sm font-bold text-[#064E3B] cursor-pointer">← Beranda</button>}
@@ -166,6 +172,6 @@ export default function App() {
     {notice && <p role="status" className="bg-emerald-100 text-emerald-900 p-3 rounded-xl">{notice}</p>}
     {content}
     {isLocalGame && <OfflineIndicator />}
-    <nav aria-label="Navigasi utama" className="fixed bottom-0 left-0 right-0 bg-[#064E3B] text-white border-t border-[#F5C542]/40 z-40 pb-[env(safe-area-inset-bottom)]"><div className="max-w-2xl mx-auto grid grid-cols-5">{NAVIGATION.map(({ screen: target, label, icon: Icon }) => <button key={target} type="button" aria-current={activeNav === target ? 'page' : undefined} onClick={() => navigate(target)} className={`min-h-16 flex flex-col items-center justify-center gap-1 text-xs font-semibold cursor-pointer ${activeNav === target ? 'text-[#F5C542] bg-white/5' : 'text-white/90'}`}><Icon className="w-5 h-5" /><span>{label}</span></button>)}</div></nav>
+    <nav data-ap-blacklist="" aria-label="Navigasi utama" className="fixed bottom-0 left-0 right-0 bg-[#064E3B] text-white border-t border-[#F5C542]/40 z-40 pb-[env(safe-area-inset-bottom)]"><div className="max-w-2xl mx-auto grid grid-cols-5">{NAVIGATION.map(({ screen: target, label, icon: Icon }) => <button key={target} type="button" aria-current={activeNav === target ? 'page' : undefined} onClick={() => navigate(target)} className={`min-h-16 flex flex-col items-center justify-center gap-1 text-xs font-semibold cursor-pointer ${activeNav === target ? 'text-[#F5C542] bg-white/5' : 'text-white/90'}`}><Icon className="w-5 h-5" /><span>{label}</span></button>)}</div></nav>
   </main>;
 }

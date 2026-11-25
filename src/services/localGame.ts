@@ -132,12 +132,13 @@ export class LocalGameService {
     return replay;
   }
 
-  private persist() {
+  private persist(): boolean {
     try {
-      if (this.storage) this.storage.setItem(LOCAL_GAME_KEY, JSON.stringify(this.game));
+      if (this.storage) { this.storage.setItem(LOCAL_GAME_KEY, JSON.stringify(this.game)); return true; }
     } catch {
       this.storageAvailable = false;
     }
+    return false;
   }
 
   private createPlayer(name: string, ageMode: AgeMode): SavedGame {
@@ -193,7 +194,8 @@ export class LocalGameService {
     try {
       const result = this.apply(path, body);
       this.game.user.profile.level = 1 + Math.floor(this.game.user.profile.xp / 200);
-      this.persist();
+      const persisted = this.persist();
+      if (path === '/api/me/parental' && !persisted) throw new Error('Pengaturan iklan belum dapat disimpan. Coba lagi.');
       return structuredClone({ ...result, user: this.game.user });
     } catch (error) {
       this.game = previous;
@@ -210,6 +212,11 @@ export class LocalGameService {
       case '/api/me/profile': {
         if (typeof body.name !== 'string' || !body.name.trim() || body.name.trim().length > 30) throw new Error('Nama pemain harus berisi 1–30 karakter.');
         user.profile.name = body.name.trim();
+        return { ok: true };
+      }
+      case '/api/me/parental': {
+        if (typeof body.adsAllowed !== 'boolean' || Object.keys(body).some(key => key !== 'adsAllowed')) throw new Error('Pengaturan iklan tidak valid.');
+        user.parental.adsAllowed = user.profile.ageMode === 'adult' && user.profile.ageConfirmed && !user.parental.childModeLocked && body.adsAllowed;
         return { ok: true };
       }
       case '/api/me/preferences': {

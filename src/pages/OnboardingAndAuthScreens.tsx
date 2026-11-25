@@ -100,7 +100,7 @@ export const OnboardingAndAuthScreens: React.FC<AuthFlowProps> = ({
   const slides = [
     {
       title: 'Ledakkan Blok Geometri Ceria',
-      desc: 'Susun strategi di papan puzzle 8x8 bersama Mimo. Kumpulkan bintang, buka booster roket, bom, dan pelangi tanpa iklan mengganggu saat belajar.',
+      desc: 'Susun strategi di papan puzzle 8x8 bersama Mimo. Kumpulkan bintang, buka booster roket, bom, dan pelangi. Mode Anak tetap tanpa iklan.',
       icon: Sparkles,
     },
     {
@@ -110,7 +110,7 @@ export const OnboardingAndAuthScreens: React.FC<AuthFlowProps> = ({
     },
     {
       title: 'Belajar Bersama Keluarga',
-      desc: 'Bermain tanpa iklan dan kumpulkan hadiah virtual. Progres petualangan tersimpan di browser perangkat ini.',
+      desc: 'Mode Anak bermain tanpa iklan. Pada Mode Dewasa, iklan dapat diaktifkan melalui Profil. Progres petualangan tersimpan di browser perangkat ini.',
       icon: ShieldCheck,
     },
   ];
@@ -290,7 +290,7 @@ export const OnboardingAndAuthScreens: React.FC<AuthFlowProps> = ({
                     Mode Dewasa (18+ Tahun)
                   </h3>
                   <p className="mt-1 text-xs leading-relaxed text-[#064E3B]/80">
-                    Jelajahi seluruh permainan edukasi, selesaikan misi, dan kumpulkan koin serta item virtual bersama Mimo.
+                    Jelajahi seluruh permainan edukasi, selesaikan misi, dan kumpulkan koin serta item virtual bersama Mimo. Iklan opsional dapat diaktifkan di Profil.
                   </p>
                 </div>
               </div>

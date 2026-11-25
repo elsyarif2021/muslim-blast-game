@@ -46,12 +46,20 @@ Pengembangan ini tetap memakai mode browser bawaan tanpa env dan tidak menambahk
 
 ## Penyimpanan dan fitur
 
+### Yandex Autoplacement 20500890
+
+Kode `https://yandex.ru/ads/system/context.js` dan `https://yandex.ru/ads/system/ap-loader.js` dengan `data-page-id="20500890"` dimuat async satu kali pada domain produksi `muslim-blast-game.vercel.app`. Integrasi berlaku untuk mode browser bawaan, pemain Dewasa yang telah mengaktifkan **Profil → Iklan pada Mode Dewasa**. Preferensi awal dan hasil pemulihan cadangan tetap menonaktifkan iklan. Mode Anak, layar awal sebelum masuk, server opsional, localhost, dan deployment pratinjau tidak memuat skrip iklan.
+
+Izin disimpan di `parental.adsAllowed`. Saat iklan yang sudah dimuat dimatikan, pemain keluar, atau profil diganti melalui pemulihan cadangan, aplikasi memuat dokumen baru untuk menghentikan runtime iklan; progres utama tetap tersimpan. Menghapus tag script saja tidak membatalkan semua efek SDK pihak ketiga.
+
+Area puzzle, hasil ronde, belajar, Profil, dan navigasi memakai atribut `data-ap-blacklist` sesuai [dokumentasi Yandex](https://yandex.com/support/partner/en/web/auto-placement). Atribut tersebut mengecualikan penyisipan iklan di dalam area itu; jenis overlay/fullscreen dan batas frekuensi dikelola pada pengaturan unit di dashboard Yandex. Integrasi ini tidak menambahkan hadiah iklan atau pencairan uang. Jangan klik iklan untuk pengujian. Pengisian iklan dan status akun/domain tetap ditentukan Yandex.
+
 - Progres berada di browser perangkat ini, pada key `muslim-blast:game:v1`. Menghapus data situs akan menghapus progres. Pemindahan antarperangkat memakai cadangan JSON melalui Profil; sinkronisasi otomatis belum tersedia.
 - Mode lokal tidak meminta email atau password. Identitas lokal bukan autentikasi server; koin, permata, dan prestasi lokal hanya untuk permainan.
 - Puzzle, kuis, Hijaiyah, misi, hadiah harian, prestasi, pembelian booster, serta pengaturan suara dan animasi dapat digunakan dalam mode lokal.
 - Hasil puzzle dihitung ulang dari seed dan riwayat langkah. Pengiriman ulang hasil sesi tidak menggandakan hadiah.
 - Materi kuis mempertahankan status pratinjau pada data sumber. Rekaman nama 28 huruf Hijaiyah disertakan dengan atribusi dan lisensi CC BY-SA 4.0; latihan harakat memakai petunjuk tertulis.
-- Admin, iklan, dan pencairan uang tetap nonaktif pada demo. Peringkat antarperangkat, autentikasi produksi, dan APK Android belum disediakan oleh perbaikan ini.
+- Admin, iklan berhadiah, dan pencairan uang tetap nonaktif pada demo. Yandex Autoplacement opsional tersedia untuk Mode Dewasa. Peringkat antarperangkat, autentikasi produksi, dan APK Android belum disediakan oleh perbaikan ini.
 
 ## Server pengembangan opsional
 
